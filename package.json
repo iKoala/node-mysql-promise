@@ -1,0 +1,25 @@
+{
+  "name": "node-mysql-promise",
+  "version": "1.0.0",
+  "description": "Node.js MySQL library promise wrapper",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iKoala/node-mysql-promise.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iKoala/node-mysql-promise/issues"
+  },
+  "homepage": "https://github.com/iKoala/node-mysql-promise#readme",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "mysql": "^2.15.0"
+  },
+  "devDependencies": {}
+}

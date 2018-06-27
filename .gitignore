@@ -59,3 +59,10 @@ typings/
 
 # next.js build output
 .next
+
+# OS hidden files and cache files
+.DS_Store
+.sass-cache
+
+# I don't like package-lock.json
+package-lock.json
