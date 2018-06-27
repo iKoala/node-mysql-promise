@@ -65,4 +65,4 @@ typings/
 .sass-cache
 
 # I don't like package-lock.json
-package-lock.json
+#package-lock.json
