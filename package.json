@@ -11,15 +11,18 @@
     "url": "git+https://github.com/iKoala/node-mysql-promise.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "iKoala",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/iKoala/node-mysql-promise/issues"
   },
   "homepage": "https://github.com/iKoala/node-mysql-promise#readme",
   "dependencies": {
-    "bluebird": "^3.5.1",
-    "mysql": "^2.15.0"
+    "bluebird": "^3.5.3",
+    "mysql": "^2.16.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "directories": {
+    "test": "test"
+  }
 }
