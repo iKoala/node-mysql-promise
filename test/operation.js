@@ -4,6 +4,12 @@ const path = require('path');
 const assert = require('assert');
 const db = require('../index');
 
+const DB_CONFIG = {
+  "host": "127.0.0.1",
+  "user": "root",
+  "password": "abc@123"
+};
+
 describe('Test database operation ...', function() {
 
   describe(`Create "test" database`, () => {
@@ -17,7 +23,7 @@ describe('Test database operation ...', function() {
     });
 
     it(`should load schema from test.sql file`, () => {
-      return db.loadFile(path.join('test.sql'))
+      return db.loadFile(DB_CONFIG, path.join('test.sql'))
         .then((rs) => {
           assert.ok(rs);
         });

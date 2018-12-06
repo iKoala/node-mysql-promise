@@ -89,9 +89,29 @@ var db = module.exports = exports = {
     return defaultInstance.query(stmt, params);
   },
 
-  loadFile: (...args) => {
-    if (!defaultInstance) { return P.resolve(); }
-    return defaultInstance.loadFile.apply(defaultInstance, args);
+  /**
+   * Load .sql file with multiple statements connection
+   * @param  {string} filepath full path of source file
+   * @return {[type]}          [description]
+   */
+  loadFile: (settings, filepath) => {
+    logger.log(`<${settings.host}> :: #loadFile :: ${filepath}`);
+
+    settings.multipleStatements = true;
+    let connection = mysql.createConnection(settings);
+
+    return P.fromCallback((cb) => {
+      return fs.readFile(filepath, 'utf8', cb);
+    }).then((stmts) => {
+      // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
+      // console.log(stmts);
+      return P.fromCallback((cb) => {
+        return connection.query(stmts, cb);
+      });
+    }).then(() => {
+      connection.end();
+      return true;
+    });
   },
 
   printQuery: function (_stmt, _params) {
@@ -161,35 +181,6 @@ class DBConnection {
     }).then(function(results) {
       self.activeConnection--;
       return results;
-    });
-  }
-
-  /**
-   * Load .sql file with multiple statements connection
-   * @param  {string} filepath full path of source file
-   * @return {[type]}          [description]
-   */
-  loadFile(filepath) {
-    if (this.verbose) {
-      logger.log(`${this.name} :: #loadFile :: ${filepath}`);
-    }
-
-    // let self = this;
-    let settings = JSON.parse(JSON.stringify(this.settings));
-    settings.multipleStatements = true;
-    let connection = mysql.createConnection(settings);
-
-    return P.fromCallback((cb) => {
-      return fs.readFile(filepath, 'utf8', cb);
-    }).then((stmts) => {
-      // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
-      // console.log(stmts);
-      return P.fromCallback((cb) => {
-        return connection.query(stmts, cb);
-      });
-    }).then(() => {
-      connection.end();
-      return true;
     });
   }
 

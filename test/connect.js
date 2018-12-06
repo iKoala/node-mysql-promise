@@ -6,7 +6,7 @@ const db = require('../index');
 const DB_CONFIG = {
   "host": "127.0.0.1",
   "user": "root",
-  "password": "abc123"
+  "password": "abc@123"
 };
 const VERBOSE = false;
 
