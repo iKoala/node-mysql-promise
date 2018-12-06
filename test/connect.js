@@ -21,14 +21,22 @@ after(function() {
 
 describe('Test database connection ...', function() {
 
-  describe('SELECT 1', function() {
-    it('should return 1 with valid connection', function() {
-      return db.query(`SELECT 1;`, [])
-        .then(function(rs) {
-          assert.ok(Array.isArray(rs));
-          assert.deepStrictEqual(rs.length, 1);
-          assert.ok(rs[0]['1'] === 1);
-        });
-    });
+  it('should select 1 from database', function() {
+    return db.query(`SELECT 1;`, [])
+      .then(function(rs) {
+        assert.ok(Array.isArray(rs));
+        assert.deepStrictEqual(rs.length, 1);
+        assert.ok(rs[0]['1'] === 1);
+      });
+  });
+
+  it('should select NOW() with single connection', function() {
+    let connection = db.getConnection(DB_CONFIG);
+    return connection.query('SELECT NOW();')
+      .then(function(rs) {
+        connection.end();
+        let rc = rs[0];
+        assert.ok(rc['NOW()'] instanceof Date);
+      });
   });
 });

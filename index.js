@@ -69,6 +69,19 @@ var db = module.exports = exports = {
     });
   },
 
+  getConnection: (opts) => {
+    let connection = mysql.createConnection(opts);
+
+    return {
+      query: (stmt) => {
+        return P.fromCallback((cb) => {
+          connection.query(stmt, cb);
+        });
+      },
+      end: connection.end.bind(connection)
+    };
+  },
+
   query: function(stmt, params) {
     if (!defaultInstance) { return P.resolve(); }
     return defaultInstance.query(stmt, params);
@@ -150,22 +163,6 @@ class DBConnection {
   }
 
   /**
-   * @deprecated - not useful
-   * [getActiveConnection description]
-   * @return {[type]} [description]
-   */
-  // getConnection(opts) {
-  //   opts = opts ? opts : {};
-  //   if (this.verbose) {
-  //     logger.log(`${this.name} :: #getConnection :: ${JSON.stringify(opts)}`);
-  //   }
-  //   let self = this;
-  //   return P.fromCallback((cb) => {
-  //     return self.pool.getConnection(cb);
-  //   });
-  // }
-
-  /**
    * Load .sql file with multiple statements connection
    * @param  {string} filepath full path of source file
    * @return {[type]}          [description]
@@ -189,9 +186,7 @@ class DBConnection {
         return connection.query(stmts, cb);
       });
     }).then(() => {
-      // console.log(rs);
       connection.end();
-      // console.log(`connection end`);
       return true;
     });
   }
