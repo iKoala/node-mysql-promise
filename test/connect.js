@@ -1,23 +1,25 @@
 'use strict';
 
-var assert = require('assert');
+const assert = require('assert');
 const db = require('../index');
 
 const DB_CONFIG = {
-  "host": "localhost",
+  "host": "127.0.0.1",
   "user": "root",
   "password": "abc123"
 };
+const VERBOSE = false;
 
-describe('Test Database Connection', function() {
+before(function() {
+  db.verbose = VERBOSE;
+  db.create('master', DB_CONFIG);
+});
 
-  before(function() {
-    db.create('master', DB_CONFIG);
-  });
+after(function() {
+  db.destroy();
+});
 
-  after(function() {
-    db.destroy();
-  });
+describe('Test database connection ...', function() {
 
   describe('SELECT 1', function() {
     it('should return 1 with valid connection', function() {

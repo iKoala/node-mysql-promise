@@ -1,11 +1,27 @@
 'use strict';
 
+const fs = require('fs');
 const util = require('util');
 const P = require('bluebird');
 const mysql = require("mysql");
 
 var defaultInstance;
 var instanceList = {};
+var isVerbose = true;
+
+var logger = {
+  info: (...args) => {
+    if (!isVerbose) { return; }
+    console.info.apply(null, args);
+  },
+  log: (...args) => {
+    if (!isVerbose) { return; }
+    console.log.apply(null, args);
+  },
+  warn: (...args) => {
+    console.warn.apply(null, args);
+  }
+};
 
 var db = module.exports = exports = {
   create: function(connName, settings) {
@@ -18,16 +34,16 @@ var db = module.exports = exports = {
       throw new Error('connection exists >> ' + connName);
     }
 
-    console.info('db.create :: <%s> :: host >> %s, database >> %s',
+    logger.info('db.create :: <%s> :: host >> %s, database >> %s',
       connName, settings.host, settings.database);
 
     if (!settings.host || settings.host.length === 0) {
-      console.warn('db <%s> :: Invalid host config. Database not available.', connName);
+      logger.warn('db <%s> :: Invalid host config. Database not available.', connName);
       return null;
     }
 
     if (settings.password === null || settings.password === undefined) {
-      console.warn('db <%s> :: Invalid password config. Database not available.', connName);
+      logger.warn('db <%s> :: Invalid password config. Database not available.', connName);
       return null;
     }
 
@@ -58,73 +74,134 @@ var db = module.exports = exports = {
     return defaultInstance.query(stmt, params);
   },
 
+  loadFile: (...args) => {
+    if (!defaultInstance) { return P.resolve(); }
+    return defaultInstance.loadFile.apply(defaultInstance, args);
+  },
+
   printQuery: function (_stmt, _params) {
     if (!defaultInstance) { return; }
     var stmt = mysql.format(_stmt, _params);
     return stmt;
   },
 
-  setVerbose: function(verbose) {
-    for (var key in instanceList) {
+  setVerbose: function(v) {
+    exports.verbose = v;
+  },
+
+  get verbose() {
+    return isVerbose;
+  },
+  set verbose(v) {
+    isVerbose = v;
+    Object.keys(instanceList).forEach(key => {
       var conn = instanceList[key];
-      conn.setVerbose(verbose);
-    }
+      conn.setVerbose(v);
+    });
   }
 };
 
-/**
- * @constructor
- */
-function DBConnection(connName) {
-  this.name = util.format('[db::%s]', connName);
-  this.pool = null;
-  this.activeConnection = 0;
-  this.verbose = true;
-}
-
-/**
- * @constructor
- * @param {object} settings MySQL Settings
- */
-DBConnection.prototype.init = function init(settings) {
-  this.pool = mysql.createPool(settings);
-};
-
-DBConnection.prototype.destroy = function destroy() {
-  if (this.pool) {
-    this.pool.end();
+class DBConnection {
+  /**
+   * @constructor
+   * @param {object} settings MySQL Settings
+   */
+  constructor(connName) {
+    this.name = util.format('[db::%s]', connName);
+    this.settings = null;
     this.pool = null;
     this.activeConnection = 0;
-  }
-};
-
-/**
- * Execute query and return result set
- * @public
- * @memberOf exports
- */
-DBConnection.prototype.query = function query(stmt, params) {
-  if (this.verbose) {
-    console.log('%s :: query :: stmt >> %s',
-      this.name, db.printQuery(stmt, params));
+    this.verbose = true;
   }
 
-  var self = this;
-  this.activeConnection++;
+  init(settings) {
+    this.settings = settings;
+    this.pool = mysql.createPool(settings);
+  }
 
-  return P.fromCallback(function(callback) {
-    return self.pool.query(stmt, params, callback);
-  }).then(function(results) {
-    self.activeConnection--;
-    return results;
-  });
-};
+  destroy() {
+    if (this.pool) {
+      this.pool.end();
+      this.pool = null;
+      this.activeConnection = 0;
+    }
+  }
 
-DBConnection.prototype.getActiveConnection = function getActiveConnection() {
-  return this.activeConnection;
-};
+  /**
+   * Execute query and return result set
+   * @public
+   * @memberOf exports
+   */
+  query(stmt, params) {
+    if (this.verbose) {
+      logger.log('%s :: query :: stmt >> %s',
+        this.name, db.printQuery(stmt, params));
+    }
 
-DBConnection.prototype.setVerbose = function(verbose) {
-  console.log('setVerbose >> %s', verbose);
-  this.verbose = verbose;
-};
+    var self = this;
+    this.activeConnection++;
+
+    return P.fromCallback(function(callback) {
+      return self.pool.query(stmt, params, callback);
+    }).then(function(results) {
+      self.activeConnection--;
+      return results;
+    });
+  }
+
+  /**
+   * @deprecated - not useful
+   * [getActiveConnection description]
+   * @return {[type]} [description]
+   */
+  // getConnection(opts) {
+  //   opts = opts ? opts : {};
+  //   if (this.verbose) {
+  //     logger.log(`${this.name} :: #getConnection :: ${JSON.stringify(opts)}`);
+  //   }
+  //   let self = this;
+  //   return P.fromCallback((cb) => {
+  //     return self.pool.getConnection(cb);
+  //   });
+  // }
+
+  /**
+   * Load .sql file with multiple statements connection
+   * @param  {string} filepath full path of source file
+   * @return {[type]}          [description]
+   */
+  loadFile(filepath) {
+    if (this.verbose) {
+      logger.log(`${this.name} :: #loadFile :: ${filepath}`);
+    }
+
+    // let self = this;
+    let settings = JSON.parse(JSON.stringify(this.settings));
+    settings.multipleStatements = true;
+    let connection = mysql.createConnection(settings);
+
+    return P.fromCallback((cb) => {
+      return fs.readFile(filepath, 'utf8', cb);
+    }).then((stmts) => {
+      // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
+      // console.log(stmts);
+      return P.fromCallback((cb) => {
+        return connection.query(stmts, cb);
+      });
+    }).then(() => {
+      // console.log(rs);
+      connection.end();
+      // console.log(`connection end`);
+      return true;
+    });
+  }
+
+  getActiveConnection() {
+    return this.activeConnection;
+  }
+
+  setVerbose(verbose) {
+    logger.log('setVerbose >> %s', verbose);
+    this.verbose = verbose;
+  }
+}
