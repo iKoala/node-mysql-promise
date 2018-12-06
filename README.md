@@ -5,7 +5,8 @@ Node.js MySQL library promise wrapper
 npm install
 
 # Testing
-mocha
+npm install -g mocha
+npm test
 
 # Dependencies:
 [Bluebird - Javascript promise library](http://bluebirdjs.com/docs/getting-started.html)
