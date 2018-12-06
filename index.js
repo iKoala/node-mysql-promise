@@ -73,9 +73,11 @@ var db = module.exports = exports = {
     let connection = mysql.createConnection(opts);
 
     return {
-      query: (stmt) => {
+      query: (...args) => {
         return P.fromCallback((cb) => {
-          connection.query(stmt, cb);
+          // connection.query(stmt, cb);
+          args.push(cb);
+          connection.query.apply(connection, args);
         });
       },
       end: connection.end.bind(connection)

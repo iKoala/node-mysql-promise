@@ -32,7 +32,7 @@ describe('Test database connection ...', function() {
 
   it('should select NOW() with single connection', function() {
     let connection = db.getConnection(DB_CONFIG);
-    return connection.query('SELECT NOW();')
+    return connection.query('SELECT NOW(), ?;', ['foo'])
       .then(function(rs) {
         connection.end();
         let rc = rs[0];
