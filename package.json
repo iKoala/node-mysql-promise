@@ -1,6 +1,6 @@
 {
   "name": "@ikoala/node-mysql-promise",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Node.js MySQL library promise wrapper",
   "main": "index.js",
   "engines": {
