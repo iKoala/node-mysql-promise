@@ -25,6 +25,31 @@ const query = async (val) => {
 query('foo')
 ```
 
+### Helper Functions
+```javascript
+const select = helper.createSelect('table_name', 'primary_key_field');
+(async () => {
+  await select({ all: true }) // Select all records
+  await select(1) // Select primary key id 1
+  // Select field `foo` with value `bar`
+  await select({ where: {
+    foo: 'bar'
+  }})
+})()
+
+const insert = helper.createInsert('table_name', 'primary_key_field', {
+  defaultFields: {
+    ctime: () => new Date()
+  }
+});
+(async () => {
+  await insert({
+    field1: 'foo',
+    field2: 'bar'
+  }) // foo,bar,[ctime date]
+})()
+```
+
 # Testing
 npm test
 

@@ -14,6 +14,7 @@ before(function() {
   db.create('master', DB_CONFIG);
 });
 
-after(function() {
+after(async function() {
+  await db.query('DROP TABLE IF EXISTS `test_data_2`')
   db.destroy();
 });

@@ -70,4 +70,36 @@ describe('Test query helper', function() {
       assert.deepStrictEqual(rs.length, 2);
     });
   });
-})
+
+  describe('Test `createInsert` query function', function() {
+    it('should throw error without table or primary key', async function() {
+      assert.throws(helper.createInsert);
+    });
+    it('should insert with default fields', async function() {
+      const insert = helper.createInsert('test_data_2', 'id', {
+        defaultFields: {
+          ctime: () => 123456789
+        }
+      });
+      let rs = await insert({ stub: 'stub999' });
+      assert.ok(rs.id > 3);
+      let [rc] = await db.query('SELECT * FROM `test_data_2` WHERE `id` = ?', [rs.id]);
+      assert.strictEqual(rc.ctime, 123456789);
+      assert.strictEqual(rc.stub, 'stub999');
+    });
+    it('should use INSERT IGNORE by config', async function() {
+      const insert = helper.createInsert('test_data_2', 'id', {
+        ignore: true
+      });
+      let rs = await insert({ id: 3, ctime: 0, stub: 'stub3' });
+      assert.strictEqual(rs.id, 3);
+    });
+    it('should use REPLACE INTO by config', async function() {
+      const insert = helper.createInsert('test_data_2', 'id', {
+        replace: true
+      });
+      let rs = await insert({ id: 3, ctime: 0, stub: 'stub3' });
+      assert.strictEqual(rs.id, 3);
+    });
+  });
+});
