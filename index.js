@@ -1,6 +1,7 @@
 const fs = require('fs');
 const util = require('util');
 const mysql = require('mysql');
+const helper = require('./lib/helper');
 
 let defaultInstance;
 let instanceList = {};
@@ -21,7 +22,6 @@ let logger = {
 };
 
 exports.create = function(connName, settings) {
-  console.log(`create db >> ${connName}`)
   if (!connName) {
     throw new Error('missing connection name');
   }
@@ -118,20 +118,11 @@ exports.printQuery = function (_stmt, _params) {
 }
 
 exports.setVerbose = function(v) {
-  exports.verbose = v;
-}
-
-exports.verbose = {
-  get verbose() {
-    return isVerbose
-  },
-  set verbose(v) {
-    isVerbose = v;
-    Object.keys(instanceList).forEach((key) => {
-      let conn = instanceList[key];
-      conn.setVerbose(v);
-    });
-  }
+  isVerbose = v;
+  Object.keys(instanceList).forEach((key) => {
+    let conn = instanceList[key];
+    conn.setVerbose(v);
+  });
 }
 
 class DBConnection {
@@ -172,8 +163,6 @@ class DBConnection {
     }
     let self = this;
     this.activeConnection += 1;
-    // console.log(this)
-    // console.log(`pool >> `, self.pool)
     let poolQuery = util.promisify(self.pool.query.bind(self.pool));
     let results = await poolQuery(stmt, params);
     self.activeConnection -= 1;
@@ -189,3 +178,9 @@ class DBConnection {
     this.verbose = verbose;
   }
 }
+
+
+/**
+ * Helper Functions
+ */
+exports.helper = helper;

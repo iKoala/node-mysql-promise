@@ -18,7 +18,6 @@ describe('Test database operation ...', function() {
     });
 
     it(`should load schema from test.sql file`, async function() {
-      // await db.query('USE `test`;');
       let rs = await db.loadFile(DB_CONFIG, path.join('test.sql'))
       assert.ok(rs);
     });

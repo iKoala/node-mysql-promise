@@ -26,7 +26,6 @@ query('foo')
 ```
 
 # Testing
-npm install -g mocha
 npm test
 
 # Dependencies:

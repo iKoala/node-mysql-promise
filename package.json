@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/iKoala/node-mysql-promise#readme",
   "dependencies": {
+    "lodash": "^4.17.15",
     "mysql": "^2.18.1"
   },
   "devDependencies": {
