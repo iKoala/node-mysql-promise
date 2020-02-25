@@ -1,4 +1,4 @@
-'use strict';
+/* eslint-disable quote-props */
 
 const path = require('path');
 const assert = require('assert');
@@ -11,34 +11,26 @@ const DB_CONFIG = {
 };
 
 describe('Test database operation ...', function() {
-
-  describe(`Create "test" database`, () => {
-    it('should create test database if not exists', () => {
-      return db.query(`CREATE DATABASE IF NOT EXISTS test`)
-        .then((rs) => {
-          assert.ok(rs.affectedRows === 0 || rs.affectedRows === 1);
-        }).then(() => {
-          return db.query('USE `test`;');
-        });
+  describe(`Create "test" database`, function() {
+    it('should create test database if not exists', async function() {
+      let rs = await db.query(`CREATE DATABASE IF NOT EXISTS test`)
+      assert.ok(rs.affectedRows === 0 || rs.affectedRows === 1);
     });
 
-    it(`should load schema from test.sql file`, () => {
-      return db.loadFile(DB_CONFIG, path.join('test.sql'))
-        .then((rs) => {
-          assert.ok(rs);
-        });
+    it(`should load schema from test.sql file`, async function() {
+      // await db.query('USE `test`;');
+      let rs = await db.loadFile(DB_CONFIG, path.join('test.sql'))
+      assert.ok(rs);
     });
 
-    it(`should load data from test_data table`, () => {
-      return db.query('SELECT * FROM `test`.`test_data`;')
-        .then((rs) => {
-          assert.ok((rs.length > 0));
-        });
+    it(`should load data from test_data table`, async function() {
+      let rs = await db.query('SELECT * FROM `test`.`test_data`;')
+      assert.ok((rs.length === 3));
     });
 
-    it(`should delete test_data table`, () => {
-      return db.query('DROP TABLE `test`.`test_data`')
-        .then(assert.ok);
+    it(`should delete test_data table`, async function() {
+      let rs = await db.query('DROP TABLE `test`.`test_data`')
+      assert.ok(rs.warningCount === 0);
     });
   });
 

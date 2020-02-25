@@ -1,0 +1,45 @@
+{
+    "env": {
+        "commonjs": true,
+        "es6": true,
+        "node": true,
+        "mocha": true
+    },
+    "extends": [
+        "airbnb-base"
+    ],
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018
+    },
+    "plugins": [
+    ],
+    "rules": {
+      "semi": "off",
+      "quotes": ["off", "backtick", {"allowTemplateLiterals": true}],
+      "space-before-function-paren": "off",
+      "no-unused-vars": "warn",
+      "comma-dangle": "off",
+      "prefer-const": "off",
+      "no-console": "off",
+      "arrow-body-style": "off",
+      "no-use-before-define": ["error", { "variables": false }],
+      "camelcase": "off",
+      "no-multi-assign": "off",
+      "import/order": "off",
+      "no-var": "warn",
+      "prefer-destructuring": "off",
+      "prefer-template": "off",
+      "consistent-return": "off",
+      "func-names": "off",
+      "vars-on-top": "off",
+      "object-curly-spacing": "off",
+      "class-methods-use-this": "off",
+      "prefer-arrow-callback": "off",
+      "no-param-reassign": "warn",
+      "max-classes-per-file": "off"
+    }
+}

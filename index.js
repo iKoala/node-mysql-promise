@@ -1,15 +1,12 @@
-'use strict';
-
 const fs = require('fs');
 const util = require('util');
-const P = require('bluebird');
-const mysql = require("mysql");
+const mysql = require('mysql');
 
-var defaultInstance;
-var instanceList = {};
-var isVerbose = true;
+let defaultInstance;
+let instanceList = {};
+let isVerbose = true;
 
-var logger = {
+let logger = {
   info: (...args) => {
     if (!isVerbose) { return; }
     console.info.apply(null, args);
@@ -23,118 +20,119 @@ var logger = {
   }
 };
 
-var db = module.exports = exports = {
-  create: function(connName, settings) {
+exports.create = function(connName, settings) {
+  console.log(`create db >> ${connName}`)
+  if (!connName) {
+    throw new Error('missing connection name');
+  }
 
-    if (!connName) {
-      throw new Error('missing connection name');
-    }
+  if (instanceList[connName]) {
+    throw new Error('connection exists >> ' + connName);
+  }
 
-    if (instanceList[connName]) {
-      throw new Error('connection exists >> ' + connName);
-    }
+  logger.info('db.create :: <%s> :: host >> %s, database >> %s',
+    connName, settings.host, settings.database);
 
-    logger.info('db.create :: <%s> :: host >> %s, database >> %s',
-      connName, settings.host, settings.database);
+  if (!settings.host || settings.host.length === 0) {
+    logger.warn('db <%s> :: Invalid host config. Database not available.', connName);
+    return null;
+  }
 
-    if (!settings.host || settings.host.length === 0) {
-      logger.warn('db <%s> :: Invalid host config. Database not available.', connName);
-      return null;
-    }
+  if (settings.password === null || settings.password === undefined) {
+    logger.warn('db <%s> :: Invalid password config. Database not available.', connName);
+    return null;
+  }
 
-    if (settings.password === null || settings.password === undefined) {
-      logger.warn('db <%s> :: Invalid password config. Database not available.', connName);
-      return null;
-    }
+  let instance = new DBConnection(connName);
+  instance.init(settings);
+  instanceList[connName] = exports[connName] = instance;
+  if (!defaultInstance) {
+    defaultInstance = instance;
+  }
+  return instance;
+}
 
-    var instance = new DBConnection(connName);
-    instance.init(settings);
-    instanceList[connName] = db[connName] = instance;
-    if (!defaultInstance) {
-      defaultInstance = instance;
-    }
-    return instance;
-  },
+exports.destroy = function(connName) {
+  if (instanceList[connName]) {
+    instanceList[connName].destroy();
+    delete instanceList[connName];
+    return;
+  }
 
-  destroy: function(connName) {
-    if (instanceList[connName]) {
-      instanceList[connName].destroy();
-      delete instanceList[connName];
-      return;
-    }
+  Object.keys(instanceList).forEach((key) => {
+    instanceList[key].destroy();
+    delete instanceList[key];
+  });
+}
 
-    Object.keys(instanceList).forEach(key => {
-      instanceList[key].destroy();
-      delete instanceList[key];
-    });
-  },
+exports.getInstanceList = () => {
+  return instanceList
+}
 
-  getConnection: (opts) => {
-    let connection = mysql.createConnection(opts);
+exports.getConnection = (opts) => {
+  let connection = mysql.createConnection(opts);
+  return {
+    query: async (...args) => {
+      const query = util.promisify(connection.query.bind(connection));
+      return query(...args);
+    },
+    end: connection.end.bind(connection)
+  };
+}
 
-    return {
-      query: (...args) => {
-        return P.fromCallback((cb) => {
-          // connection.query(stmt, cb);
-          args.push(cb);
-          connection.query.apply(connection, args);
-        });
-      },
-      end: connection.end.bind(connection)
-    };
-  },
+exports.query = async function(stmt, params) {
+  if (!defaultInstance) { return Promise.reject(new Error(`db :: no default instance`)) }
+  return defaultInstance.query(stmt, params);
+}
 
-  query: function(stmt, params) {
-    if (!defaultInstance) { return P.resolve(); }
-    return defaultInstance.query(stmt, params);
-  },
+/**
+* Load .sql file with multiple statements connection
+* @param  {string} filepath full path of source file
+* @return {[type]}          [description]
+*/
+exports.loadFile = async (settings, filepath) => {
+  logger.log(`<${settings.host}> :: #loadFile :: ${filepath}`);
 
-  /**
-   * Load .sql file with multiple statements connection
-   * @param  {string} filepath full path of source file
-   * @return {[type]}          [description]
-   */
-  loadFile: (settings, filepath) => {
-    logger.log(`<${settings.host}> :: #loadFile :: ${filepath}`);
+  settings.multipleStatements = true;
+  let connection = mysql.createConnection(settings);
 
-    settings.multipleStatements = true;
-    let connection = mysql.createConnection(settings);
+  let readFilePromise = util.promisify(fs.readFile);
 
-    return P.fromCallback((cb) => {
-      return fs.readFile(filepath, 'utf8', cb);
-    }).then((stmts) => {
-      // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
-      // console.log(stmts);
-      return P.fromCallback((cb) => {
-        return connection.query(stmts, cb);
-      });
-    }).then(() => {
-      connection.end();
-      return true;
-    });
-  },
+  let stmts = await readFilePromise(filepath, 'utf8');
 
-  printQuery: function (_stmt, _params) {
-    if (!defaultInstance) { return; }
-    var stmt = mysql.format(_stmt, _params);
-    return stmt;
-  },
+  // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
+  // console.log(stmts);
 
-  setVerbose: function(v) {
-    exports.verbose = v;
-  },
+  let query = util.promisify(connection.query.bind(connection))
+  await query(stmts);
 
+  connection.end();
+
+  return true;
+}
+
+exports.printQuery = function (_stmt, _params) {
+  if (!defaultInstance) { return; }
+  let stmt = mysql.format(_stmt, _params);
+  return stmt;
+}
+
+exports.setVerbose = function(v) {
+  exports.verbose = v;
+}
+
+exports.verbose = {
   get verbose() {
-    return isVerbose;
+    return isVerbose
   },
   set verbose(v) {
     isVerbose = v;
-    Object.keys(instanceList).forEach(key => {
-      var conn = instanceList[key];
+    Object.keys(instanceList).forEach((key) => {
+      let conn = instanceList[key];
       conn.setVerbose(v);
     });
   }
-};
+}
 
 class DBConnection {
   /**
@@ -167,21 +165,19 @@ class DBConnection {
    * @public
    * @memberOf exports
    */
-  query(stmt, params) {
+  async query(stmt, params) {
     if (this.verbose) {
       logger.log('%s :: query :: stmt >> %s',
-        this.name, db.printQuery(stmt, params));
+        this.name, exports.printQuery(stmt, params));
     }
-
-    var self = this;
-    this.activeConnection++;
-
-    return P.fromCallback(function(callback) {
-      return self.pool.query(stmt, params, callback);
-    }).then(function(results) {
-      self.activeConnection--;
-      return results;
-    });
+    let self = this;
+    this.activeConnection += 1;
+    // console.log(this)
+    // console.log(`pool >> `, self.pool)
+    let poolQuery = util.promisify(self.pool.query.bind(self.pool));
+    let results = await poolQuery(stmt, params);
+    self.activeConnection -= 1;
+    return results;
   }
 
   getActiveConnection() {
