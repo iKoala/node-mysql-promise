@@ -51,13 +51,13 @@ describe('Test query helper', function() {
       const rs = await select([]);
       assert.deepStrictEqual(rs.length, 0);
     });
-    it('should order by id in descending order', async function() {
+    it('should order by `id` in descending order', async function() {
       const select = helper.createSelect(`test_data_2`, `id`);
       const rs = await select({ all: true, order: ['id', 'DESC'] });
       assert.deepStrictEqual(rs.length, 3);
       assert.deepStrictEqual(rs[0].id, 3);
     });
-    it('should order by id in descending order', async function() {
+    it('should order by `stub` and `id` in descending order', async function() {
       const select = helper.createSelect(`test_data_2`, `id`);
       const rs = await select({ all: true, order: [['stub', 'DESC'], ['id', 'DESC']] });
       assert.deepStrictEqual(rs.length, 3);
