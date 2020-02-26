@@ -124,5 +124,19 @@ describe('Test query helper', function() {
       assert.strictEqual(rs.id, 1);
       assert.notStrictEqual(rs.ctime, 1);
     });
+    it('should update with default fields', async function() {
+      const select = helper.createSelect('test_data_2', 'id');
+      const update = helper.createUpdate('test_data_2', 'id', {
+        defaults: {
+          ctime: () => Math.round(Math.random() * 10000),
+          stub: 's222',
+        }
+      });
+      await update(2);
+      let rs = await select(2);
+      assert.strictEqual(rs.id, 2);
+      assert.ok(rs.ctime > 0);
+      assert.strictEqual(rs.stub, 's222');
+    });
   });
 });
