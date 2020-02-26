@@ -102,4 +102,27 @@ describe('Test query helper', function() {
       assert.strictEqual(rs.id, 3);
     });
   });
+
+  describe('Test `createUpdate` query function', function() {
+    it('should throw error without table or primary key', async function() {
+      assert.throws(helper.createUpdate);
+    });
+    it('should update record with id', async function() {
+      const select = helper.createSelect('test_data_2', 'id');
+      const update = helper.createUpdate('test_data_2', 'id');
+      await update(3, { ctime: 333, stub: 'stub333' });
+      let rs = await select(3);
+      assert.strictEqual(rs.id, 3);
+      assert.strictEqual(rs.ctime, 333);
+      assert.strictEqual(rs.stub, 'stub333');
+    });
+    it('should throw error when update restricted fields', async function() {
+      const select = helper.createSelect('test_data_2', 'id');
+      const update = helper.createUpdate('test_data_2', 'id', { restricts: ['ctime'] });
+      assert.rejects(() => update(1, { ctime: 1 }));
+      let rs = await select(1);
+      assert.strictEqual(rs.id, 1);
+      assert.notStrictEqual(rs.ctime, 1);
+    });
+  });
 });
