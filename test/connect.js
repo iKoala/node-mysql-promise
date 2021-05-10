@@ -2,12 +2,9 @@
 
 const assert = require('assert');
 const db = require('../index');
+const testConfig = require('./index');
 
-const DB_CONFIG = {
-  "host": "127.0.0.1",
-  "user": "root",
-  "password": "abc@123"
-};
+const DB_CONFIG = testConfig.getDBConfig();
 
 describe('Test MySQL Promise Wrapper', function() {
   describe('Test database connection ...', function() {

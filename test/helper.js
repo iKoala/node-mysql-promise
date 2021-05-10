@@ -3,15 +3,11 @@
 const path = require('path');
 const assert = require('assert');
 const db = require('../index');
+const testConfig = require('./index');
 
 const { helper } = db;
 
-const DB_CONFIG = {
-  "host": "127.0.0.1",
-  "user": "root",
-  "password": "abc@123",
-  "database": "test",
-};
+const DB_CONFIG = testConfig.getDBConfig();
 
 describe('Test query helper', function() {
   before(async function() {
