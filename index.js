@@ -6,19 +6,33 @@ const helper = require('./lib/helper');
 let defaultInstance;
 let instanceList = {};
 let isVerbose = true;
+let customLogger;
 
 let logger = {
   info: (...args) => {
     if (!isVerbose) { return; }
-    console.info.apply(null, args);
+    if (customLogger) {
+      customLogger.info(...args);
+    } else {
+      console.info.apply(null, args);
+    }
   },
   log: (...args) => {
     if (!isVerbose) { return; }
-    console.log.apply(null, args);
+    if (customLogger) {
+      customLogger.log(...args);
+    } else {
+      console.log.apply(null, args);
+    }
+
   },
   warn: (...args) => {
     console.warn.apply(null, args);
   }
+};
+
+exports.setLogger = (mLogger) => {
+  customLogger = mLogger;
 };
 
 exports.create = function(connName, settings) {

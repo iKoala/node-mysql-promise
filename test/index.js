@@ -13,6 +13,16 @@ exports.getDBConfig = () => DB_CONFIG;
 
 before(function() {
   db.setVerbose(VERBOSE);
+  db.setLogger({
+    info: (...args) => {
+      console.info('info');
+      console.info(...args);
+    },
+    log: (...args) => {
+      console.info('log');
+      console.log(...args);
+    },
+  });
   db.create('master', DB_CONFIG);
 });
 
