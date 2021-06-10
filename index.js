@@ -44,16 +44,15 @@ exports.create = function(connName, settings) {
     throw new Error('connection exists >> ' + connName);
   }
 
-  logger.info('db.create :: <%s> :: host >> %s, database >> %s',
-    connName, settings.host, settings.database);
+  logger.info(`db.create :: <${connName}> :: host >> ${settings.host}, database >> ${settings.database}`);
 
   if (!settings.host || settings.host.length === 0) {
-    logger.warn('db <%s> :: Invalid host config. Database not available.', connName);
+    logger.warn(`db ${connName} :: Invalid host config. Database not available.`)
     return null;
   }
 
   if (settings.password === null || settings.password === undefined) {
-    logger.warn('db <%s> :: Invalid password config. Database not available.', connName);
+    logger.warn(`db <${connName}> :: Invalid password config. Database not available.`);
     return null;
   }
 
@@ -172,8 +171,7 @@ class DBConnection {
    */
   async query(stmt, params) {
     if (this.verbose) {
-      logger.log('%s :: query :: stmt >> %s',
-        this.name, exports.printQuery(stmt, params));
+      logger.log(`${this.name} :: query :: stmt >> ${exports.printQuery(stmt, params)}`);
     }
     let self = this;
     this.activeConnection += 1;
@@ -188,7 +186,7 @@ class DBConnection {
   }
 
   setVerbose(verbose) {
-    logger.log('setVerbose >> %s', verbose);
+    logger.log(`setVerbose >> ${verbose}`);
     this.verbose = verbose;
   }
 }
