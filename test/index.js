@@ -7,7 +7,7 @@ const DB_CONFIG = {
   "user": process.env.DB_USER || "root",
   "password": process.env.DB_PASSWORD || "abc@123",
 };
-const VERBOSE = false;
+const VERBOSE = parseFloat(process.env.DB_VERBOSE) === 1 || false;
 
 exports.getDBConfig = () => DB_CONFIG;
 
@@ -15,12 +15,10 @@ before(function() {
   db.setVerbose(VERBOSE);
   db.setLogger({
     info: (...args) => {
-      console.info('info');
-      console.info(...args);
+      console.info(`${new Date()}`, ...args);
     },
     log: (...args) => {
-      console.info('log');
-      console.log(...args);
+      console.log(`${new Date()}`, ...args);
     },
   });
   db.create('master', DB_CONFIG);

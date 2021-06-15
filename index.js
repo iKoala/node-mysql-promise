@@ -24,14 +24,16 @@ let logger = {
     } else {
       console.log.apply(null, args);
     }
-
   },
   warn: (...args) => {
     console.warn.apply(null, args);
-  }
+  },
 };
 
 exports.setLogger = (mLogger) => {
+  if (!mLogger) throw new Error('invalid logger object');
+  if (typeof mLogger.log !== 'function') throw new Error('logger must has .log function');
+  if (typeof mLogger.info !== 'function') throw new Error('logger must has .info function');
   customLogger = mLogger;
 };
 
@@ -63,7 +65,7 @@ exports.create = function(connName, settings) {
     defaultInstance = instance;
   }
   return instance;
-}
+};
 
 exports.destroy = function(connName) {
   if (instanceList[connName]) {
@@ -76,11 +78,11 @@ exports.destroy = function(connName) {
     instanceList[key].destroy();
     delete instanceList[key];
   });
-}
+};
 
 exports.getInstanceList = () => {
   return instanceList
-}
+};
 
 exports.getConnection = (opts) => {
   let connection = mysql.createConnection(opts);
@@ -91,12 +93,12 @@ exports.getConnection = (opts) => {
     },
     end: connection.end.bind(connection)
   };
-}
+};
 
 exports.query = async function(stmt, params) {
   if (!defaultInstance) { return Promise.reject(new Error(`db :: no default instance`)) }
   return defaultInstance.query(stmt, params);
-}
+};
 
 /**
 * Load .sql file with multiple statements connection
@@ -122,13 +124,13 @@ exports.loadFile = async (settings, filepath) => {
   connection.end();
 
   return true;
-}
+};
 
 exports.printQuery = function (_stmt, _params) {
   if (!defaultInstance) { return; }
   let stmt = mysql.format(_stmt, _params);
   return stmt;
-}
+};
 
 exports.setVerbose = function(v) {
   isVerbose = v;
@@ -136,7 +138,7 @@ exports.setVerbose = function(v) {
     let conn = instanceList[key];
     conn.setVerbose(v);
   });
-}
+};
 
 class DBConnection {
   /**

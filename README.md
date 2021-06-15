@@ -51,7 +51,16 @@ const insert = helper.createInsert('table_name', 'primary_key_field', {
 ```
 
 # Testing
-npm test
+
+```bash
+# Setup DB Connection and Login Credential
+export DB_HOST=127.0.0.1
+export DB_USER=root
+export DB_PASSWORD=abc@123
+export DB_VERBOSE=1 # Optional, enable query log
+```
+
+> npm run test
 
 # Dependencies:
 [mysql - Node.js MySQL driver](https://www.npmjs.com/package/mysql)
