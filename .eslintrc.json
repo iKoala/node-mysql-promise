@@ -18,16 +18,16 @@
     "plugins": [
     ],
     "rules": {
-      "semi": "off",
+      "semi": "warn",
       "quotes": ["off", "backtick", {"allowTemplateLiterals": true}],
       "space-before-function-paren": "off",
       "no-unused-vars": "warn",
       "comma-dangle": "off",
-      "prefer-const": "off",
+      "prefer-const": "warn",
       "no-console": "off",
       "arrow-body-style": "off",
       "no-use-before-define": ["error", { "variables": false }],
-      "camelcase": "off",
+      "camelcase": "warn",
       "no-multi-assign": "off",
       "import/order": "off",
       "no-var": "warn",
@@ -38,7 +38,7 @@
       "vars-on-top": "off",
       "object-curly-spacing": "off",
       "class-methods-use-this": "off",
-      "prefer-arrow-callback": "off",
+      "prefer-arrow-callback": "warn",
       "no-param-reassign": "warn",
       "max-classes-per-file": "off"
     }
