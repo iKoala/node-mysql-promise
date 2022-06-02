@@ -11,7 +11,7 @@ const VERBOSE = parseFloat(process.env.DB_VERBOSE) === 1 || false;
 
 exports.getDBConfig = () => DB_CONFIG;
 
-before(function() {
+before(() => {
   db.setVerbose(VERBOSE);
   db.setLogger({
     info: (...args) => {
@@ -24,7 +24,7 @@ before(function() {
   db.create('master', DB_CONFIG);
 });
 
-after(async function() {
+after(async () => {
   await db.query('DROP TABLE IF EXISTS `test_data_2`')
   db.destroy();
 });

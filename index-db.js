@@ -1,7 +1,7 @@
 const fs = require('fs');
 const util = require('util');
 const mysql = require('mysql');
-const DBConnection = require('./lib/db-connection');
+const { DBConnection } = require('./lib/db-connection');
 const helper = require('./lib/helper');
 
 let defaultInstance;
@@ -59,7 +59,7 @@ exports.create = function(connName, settings) {
     return null;
   }
 
-  let instance = new DBConnection(connName);
+  const instance = new DBConnection(connName);
   instance.init(settings);
   instanceList[connName] = exports[connName] = instance;
   if (!defaultInstance) {

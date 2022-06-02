@@ -11,13 +11,13 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 6010:
+/***/ 5833:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 const fs = __webpack_require__(7147);
 const util = __webpack_require__(3837);
 const mysql = __webpack_require__(4426);
-const DBConnection = __webpack_require__(1971);
+const { DBConnection } = __webpack_require__(1971);
 const helper = __webpack_require__(5791);
 
 let defaultInstance;
@@ -75,7 +75,7 @@ exports.create = function(connName, settings) {
     return null;
   }
 
-  let instance = new DBConnection(connName);
+  const instance = new DBConnection(connName);
   instance.init(settings);
   instanceList[connName] = exports[connName] = instance;
   if (!defaultInstance) {
@@ -166,7 +166,7 @@ exports.helper = helper;
 /***/ }),
 
 /***/ 1971:
-/***/ ((module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 const util = __webpack_require__(3837);
 const mysql = __webpack_require__(4426);
@@ -226,7 +226,7 @@ class DBConnection {
   }
 }
 
-module.exports = exports = DBConnection;
+exports.DBConnection = DBConnection;
 
 
 /***/ }),
@@ -239,7 +239,7 @@ module.exports = exports = DBConnection;
  */
 const util = __webpack_require__(3837);
 const _ = __webpack_require__(6486);
-const db = __webpack_require__(6010);
+const db = __webpack_require__(5833);
 
 exports.createSelect = (table, idField) => {
   return async function (...args) {
@@ -30177,6 +30177,55 @@ function simpleEnd(buf) {
 
 /***/ }),
 
+/***/ 8492:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.helper = exports.setVerbose = exports.printQuery = exports.loadFile = exports.query = exports.getConnection = exports.getInstanceList = exports.destroy = exports.create = exports.setLogger = void 0;
+const NodeDB = __importStar(__webpack_require__(5833));
+exports.setLogger = NodeDB.setLogger;
+exports.create = NodeDB.create;
+exports.destroy = NodeDB.destroy;
+exports.getInstanceList = NodeDB.getInstanceList;
+exports.getConnection = NodeDB.getConnection;
+exports.query = NodeDB.query;
+exports.loadFile = NodeDB.loadFile;
+exports.printQuery = NodeDB.printQuery;
+exports.setVerbose = NodeDB.setVerbose;
+exports.helper = NodeDB.helper;
+const printVersion = (version) => {
+    console.log(`NodeDB Version >> ${version}`);
+};
+printVersion(`v1`);
+
+
+/***/ }),
+
 /***/ 1159:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -33243,7 +33292,7 @@ var BigNumber = clone();
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __webpack_require__(6010);
+/******/ 	var __webpack_exports__ = __webpack_require__(8492);
 /******/ 	
 /******/ 	return __webpack_exports__;
 /******/ })()
