@@ -1,6 +1,7 @@
 const fs = require('fs');
 const util = require('util');
 const mysql = require('mysql');
+const DBConnection = require('./lib/db-connection');
 const helper = require('./lib/helper');
 
 let defaultInstance;
@@ -139,60 +140,6 @@ exports.setVerbose = function(v) {
     conn.setVerbose(v);
   });
 };
-
-class DBConnection {
-  /**
-   * @constructor
-   * @param {object} settings MySQL Settings
-   */
-  constructor(connName) {
-    this.name = util.format('[db::%s]', connName);
-    this.settings = null;
-    this.pool = null;
-    this.activeConnection = 0;
-    this.verbose = true;
-  }
-
-  init(settings) {
-    this.settings = settings;
-    this.pool = mysql.createPool(settings);
-  }
-
-  destroy() {
-    if (this.pool) {
-      this.pool.end();
-      this.pool = null;
-      this.activeConnection = 0;
-    }
-  }
-
-  /**
-   * Execute query and return result set
-   * @public
-   * @memberOf exports
-   */
-  async query(stmt, params) {
-    if (this.verbose) {
-      logger.log(`${this.name} :: query :: stmt >> ${exports.printQuery(stmt, params)}`);
-    }
-    let self = this;
-    this.activeConnection += 1;
-    let poolQuery = util.promisify(self.pool.query.bind(self.pool));
-    let results = await poolQuery(stmt, params);
-    self.activeConnection -= 1;
-    return results;
-  }
-
-  getActiveConnection() {
-    return this.activeConnection;
-  }
-
-  setVerbose(verbose) {
-    logger.log(`setVerbose >> ${verbose}`);
-    this.verbose = verbose;
-  }
-}
-
 
 /**
  * Helper Functions

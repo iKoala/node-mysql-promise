@@ -17,6 +17,7 @@ return /******/ (() => { // webpackBootstrap
 const fs = __webpack_require__(7147);
 const util = __webpack_require__(3837);
 const mysql = __webpack_require__(4426);
+const DBConnection = __webpack_require__(1971);
 const helper = __webpack_require__(5791);
 
 let defaultInstance;
@@ -156,22 +157,39 @@ exports.setVerbose = function(v) {
   });
 };
 
+/**
+ * Helper Functions
+ */
+exports.helper = helper;
+
+
+/***/ }),
+
+/***/ 1971:
+/***/ ((module, exports, __webpack_require__) => {
+
+const util = __webpack_require__(3837);
+const mysql = __webpack_require__(4426);
+
 class DBConnection {
   /**
    * @constructor
    * @param {object} settings MySQL Settings
    */
   constructor(connName) {
-    this.name = util.format('[db::%s]', connName);
+    this.name = `[db::${connName}]`;
     this.settings = null;
     this.pool = null;
     this.activeConnection = 0;
     this.verbose = true;
+    this.logger = console;
   }
 
-  init(settings) {
+  init(settings, logger = null) {
     this.settings = settings;
     this.pool = mysql.createPool(settings);
+    this.poolQuery = util.promisify(this.pool.query.bind(this.pool));
+    this.logger = logger || this.logger;
   }
 
   destroy() {
@@ -189,12 +207,11 @@ class DBConnection {
    */
   async query(stmt, params) {
     if (this.verbose) {
-      logger.log(`${this.name} :: query :: stmt >> ${exports.printQuery(stmt, params)}`);
+      this.logger.log(`${this.name} :: query :: stmt >> ${mysql.format(stmt, params)}`);
     }
     let self = this;
     this.activeConnection += 1;
-    let poolQuery = util.promisify(self.pool.query.bind(self.pool));
-    let results = await poolQuery(stmt, params);
+    let results = await self.poolQuery(stmt, params);
     self.activeConnection -= 1;
     return results;
   }
@@ -204,16 +221,12 @@ class DBConnection {
   }
 
   setVerbose(verbose) {
-    logger.log(`setVerbose >> ${verbose}`);
+    this.logger.log(`setVerbose >> ${verbose}`);
     this.verbose = verbose;
   }
 }
 
-
-/**
- * Helper Functions
- */
-exports.helper = helper;
+module.exports = exports = DBConnection;
 
 
 /***/ }),
