@@ -5,8 +5,16 @@ const instanceList: any = {};
 let defaultInstance: DBConnection;
 
 let isVerbose: Boolean = true;
-let customLogger: any;
-const logger: any = {
+interface Logger {
+  info: any;
+  log: any;
+  warn: any;
+};
+export const createLogger = (info: any, log: any, warn: any): Logger => {
+  return { info, log, warn };
+};
+let customLogger: Logger;
+const logger: Logger = {
   info: (...args: any[]) => {
     if (!isVerbose) { return; }
     if (customLogger) {
@@ -28,7 +36,7 @@ const logger: any = {
   },
 };
 
-export const setLogger = (mLogger: any): void => {
+export const setLogger = (mLogger: Logger): void => {
   if (!mLogger) throw new Error('invalid logger object');
   if (typeof mLogger.log !== 'function') throw new Error('logger must has .log function');
   if (typeof mLogger.info !== 'function') throw new Error('logger must has .info function');

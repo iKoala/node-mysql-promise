@@ -30157,12 +30157,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.printVersion = exports.helper = exports.setVerbose = exports.printQuery = exports.loadFile = exports.query = exports.getConnection = exports.getInstanceList = exports.destroy = exports.create = exports.setLogger = void 0;
+exports.printVersion = exports.helper = exports.setVerbose = exports.printQuery = exports.loadFile = exports.query = exports.getConnection = exports.getInstanceList = exports.destroy = exports.create = exports.setLogger = exports.createLogger = void 0;
 const NodeDB = __importStar(__webpack_require__(5833));
 const db_connection_1 = __webpack_require__(1971);
 const instanceList = {};
 let defaultInstance;
 let isVerbose = true;
+;
+const createLogger = (info, log, warn) => {
+    return { info, log, warn };
+};
+exports.createLogger = createLogger;
 let customLogger;
 const logger = {
     info: (...args) => {
