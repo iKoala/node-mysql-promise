@@ -22,66 +22,17 @@ const helper = __webpack_require__(5791);
 
 let defaultInstance;
 let instanceList = {};
-let isVerbose = true;
-let customLogger;
+let logger;
 
-let logger = {
-  info: (...args) => {
-    if (!isVerbose) { return; }
-    if (customLogger) {
-      customLogger.info(...args);
-    } else {
-      console.info.apply(null, args);
-    }
-  },
-  log: (...args) => {
-    if (!isVerbose) { return; }
-    if (customLogger) {
-      customLogger.log(...args);
-    } else {
-      console.log.apply(null, args);
-    }
-  },
-  warn: (...args) => {
-    console.warn.apply(null, args);
-  },
+// TODO
+exports.setDefaultInstance = (instance) => {
+  defaultInstance = instance;
 };
-
-exports.setLogger = (mLogger) => {
-  if (!mLogger) throw new Error('invalid logger object');
-  if (typeof mLogger.log !== 'function') throw new Error('logger must has .log function');
-  if (typeof mLogger.info !== 'function') throw new Error('logger must has .info function');
-  customLogger = mLogger;
+exports.setInstanceList = (list) => {
+  instanceList = list;
 };
-
-exports.create = function(connName, settings) {
-  if (!connName) {
-    throw new Error('missing connection name');
-  }
-
-  if (instanceList[connName]) {
-    throw new Error('connection exists >> ' + connName);
-  }
-
-  logger.info(`db.create :: <${connName}> :: host >> ${settings.host}, database >> ${settings.database}`);
-
-  if (!settings.host || settings.host.length === 0) {
-    logger.warn(`db ${connName} :: Invalid host config. Database not available.`)
-    return null;
-  }
-
-  if (settings.password === null || settings.password === undefined) {
-    logger.warn(`db <${connName}> :: Invalid password config. Database not available.`);
-    return null;
-  }
-
-  const instance = new DBConnection(connName);
-  instance.init(settings);
-  instanceList[connName] = exports[connName] = instance;
-  if (!defaultInstance) {
-    defaultInstance = instance;
-  }
-  return instance;
+exports.setLogger = (_logger) => {
+  logger = _logger;
 };
 
 exports.destroy = function(connName) {
@@ -30206,10 +30157,78 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.helper = exports.setVerbose = exports.printQuery = exports.loadFile = exports.query = exports.getConnection = exports.getInstanceList = exports.destroy = exports.create = exports.setLogger = void 0;
+exports.printVersion = exports.helper = exports.setVerbose = exports.printQuery = exports.loadFile = exports.query = exports.getConnection = exports.getInstanceList = exports.destroy = exports.create = exports.setLogger = void 0;
 const NodeDB = __importStar(__webpack_require__(5833));
-exports.setLogger = NodeDB.setLogger;
-exports.create = NodeDB.create;
+const db_connection_1 = __webpack_require__(1971);
+const instanceList = {};
+let defaultInstance;
+let isVerbose = true;
+let customLogger;
+const logger = {
+    info: (...args) => {
+        if (!isVerbose) {
+            return;
+        }
+        if (customLogger) {
+            customLogger.info(...args);
+        }
+        else {
+            console.info.apply(null, args);
+        }
+    },
+    log: (...args) => {
+        if (!isVerbose) {
+            return;
+        }
+        if (customLogger) {
+            customLogger.log(...args);
+        }
+        else {
+            console.log.apply(null, args);
+        }
+    },
+    warn: (...args) => {
+        console.warn.apply(null, args);
+    },
+};
+const setLogger = (mLogger) => {
+    if (!mLogger)
+        throw new Error('invalid logger object');
+    if (typeof mLogger.log !== 'function')
+        throw new Error('logger must has .log function');
+    if (typeof mLogger.info !== 'function')
+        throw new Error('logger must has .info function');
+    customLogger = mLogger;
+    NodeDB.setLogger(logger); // TODO
+};
+exports.setLogger = setLogger;
+const create = (connName, settings) => {
+    if (!connName) {
+        throw new Error('missing connection name');
+    }
+    if (instanceList[connName]) {
+        throw new Error('connection exists >> ' + connName);
+    }
+    logger.info(`db.create :: <${connName}> :: host >> ${settings.host}, database >> ${settings.database}`);
+    if (!settings.host || settings.host.length === 0) {
+        logger.warn(`db ${connName} :: Invalid host config. Database not available.`);
+        return null;
+    }
+    if (settings.password === null || settings.password === undefined) {
+        logger.warn(`db <${connName}> :: Invalid password config. Database not available.`);
+        return null;
+    }
+    const instance = new db_connection_1.DBConnection(connName);
+    instance.init(settings);
+    instanceList[connName] = exports[connName] = instance;
+    NodeDB.setInstanceList(instanceList); // TODO
+    if (!defaultInstance) {
+        defaultInstance = instance;
+        NodeDB.setDefaultInstance(defaultInstance); // TODO
+    }
+    return instance;
+};
+exports.create = create;
 exports.destroy = NodeDB.destroy;
 exports.getInstanceList = NodeDB.getInstanceList;
 exports.getConnection = NodeDB.getConnection;
@@ -30221,7 +30240,8 @@ exports.helper = NodeDB.helper;
 const printVersion = (version) => {
     console.log(`NodeDB Version >> ${version}`);
 };
-printVersion(`v1`);
+exports.printVersion = printVersion;
+(0, exports.printVersion)(`v1`);
 
 
 /***/ }),
