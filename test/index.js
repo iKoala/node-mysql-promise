@@ -1,6 +1,6 @@
 /* eslint-disable quote-props */
 
-const db = require('../index');
+const db = require('../dist/main');
 
 const DB_CONFIG = {
   "host": process.env.DB_HOST || "127.0.0.1",
