@@ -11,111 +11,6 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 5833:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-const fs = __webpack_require__(7147);
-const util = __webpack_require__(3837);
-const mysql = __webpack_require__(4426);
-const { DBConnection } = __webpack_require__(1971);
-const helper = __webpack_require__(5791);
-
-let defaultInstance;
-let instanceList = {};
-let logger;
-
-// TODO
-exports.setDefaultInstance = (instance) => {
-  defaultInstance = instance;
-};
-exports.setInstanceList = (list) => {
-  instanceList = list;
-};
-exports.setLogger = (_logger) => {
-  logger = _logger;
-};
-
-exports.destroy = function(connName) {
-  if (instanceList[connName]) {
-    instanceList[connName].destroy();
-    delete instanceList[connName];
-    return;
-  }
-
-  Object.keys(instanceList).forEach((key) => {
-    instanceList[key].destroy();
-    delete instanceList[key];
-  });
-};
-
-exports.getInstanceList = () => {
-  return instanceList
-};
-
-exports.getConnection = (opts) => {
-  let connection = mysql.createConnection(opts);
-  return {
-    query: async (...args) => {
-      const query = util.promisify(connection.query.bind(connection));
-      return query(...args);
-    },
-    end: connection.end.bind(connection)
-  };
-};
-
-exports.query = async function(stmt, params) {
-  if (!defaultInstance) { return Promise.reject(new Error(`db :: no default instance`)) }
-  return defaultInstance.query(stmt, params);
-};
-
-/**
-* Load .sql file with multiple statements connection
-* @param  {string} filepath full path of source file
-* @return {[type]}          [description]
-*/
-exports.loadFile = async (settings, filepath) => {
-  logger.log(`<${settings.host}> :: #loadFile :: ${filepath}`);
-
-  settings.multipleStatements = true;
-  let connection = mysql.createConnection(settings);
-
-  let readFilePromise = util.promisify(fs.readFile);
-
-  let stmts = await readFilePromise(filepath, 'utf8');
-
-  // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
-  // console.log(stmts);
-
-  let query = util.promisify(connection.query.bind(connection))
-  await query(stmts);
-
-  connection.end();
-
-  return true;
-};
-
-exports.printQuery = function (_stmt, _params) {
-  if (!defaultInstance) { return; }
-  let stmt = mysql.format(_stmt, _params);
-  return stmt;
-};
-
-exports.setVerbose = function(v) {
-  isVerbose = v;
-  Object.keys(instanceList).forEach((key) => {
-    let conn = instanceList[key];
-    conn.setVerbose(v);
-  });
-};
-
-/**
- * Helper Functions
- */
-exports.helper = helper;
-
-
-/***/ }),
-
 /***/ 1971:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -190,7 +85,7 @@ exports.DBConnection = DBConnection;
  */
 const util = __webpack_require__(3837);
 const _ = __webpack_require__(6486);
-const db = __webpack_require__(5833);
+const db = __webpack_require__(8492);
 
 exports.createSelect = (table, idField) => {
   return async function (...args) {
@@ -526,6 +421,183 @@ exports.isBuffer = Buffer.isBuffer;
 function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
+
+
+/***/ }),
+
+/***/ 371:
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+(function () {
+  (__webpack_require__(738).config)(
+    Object.assign(
+      {},
+      __webpack_require__(547),
+      __webpack_require__(962)(process.argv)
+    )
+  )
+})()
+
+
+/***/ }),
+
+/***/ 962:
+/***/ ((module) => {
+
+const re = /^dotenv_config_(encoding|path|debug|override)=(.+)$/
+
+module.exports = function optionMatcher (args) {
+  return args.reduce(function (acc, cur) {
+    const matches = cur.match(re)
+    if (matches) {
+      acc[matches[1]] = matches[2]
+    }
+    return acc
+  }, {})
+}
+
+
+/***/ }),
+
+/***/ 547:
+/***/ ((module) => {
+
+// ../config.js accepts options via environment variables
+const options = {}
+
+if (process.env.DOTENV_CONFIG_ENCODING != null) {
+  options.encoding = process.env.DOTENV_CONFIG_ENCODING
+}
+
+if (process.env.DOTENV_CONFIG_PATH != null) {
+  options.path = process.env.DOTENV_CONFIG_PATH
+}
+
+if (process.env.DOTENV_CONFIG_DEBUG != null) {
+  options.debug = process.env.DOTENV_CONFIG_DEBUG
+}
+
+if (process.env.DOTENV_CONFIG_OVERRIDE != null) {
+  options.override = process.env.DOTENV_CONFIG_OVERRIDE
+}
+
+module.exports = options
+
+
+/***/ }),
+
+/***/ 738:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+const fs = __webpack_require__(7147)
+const path = __webpack_require__(17)
+const os = __webpack_require__(37)
+
+const LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg
+
+// Parser src into an Object
+function parse (src) {
+  const obj = {}
+
+  // Convert buffer to string
+  let lines = src.toString()
+
+  // Convert line breaks to same format
+  lines = lines.replace(/\r\n?/mg, '\n')
+
+  let match
+  while ((match = LINE.exec(lines)) != null) {
+    const key = match[1]
+
+    // Default undefined or null to empty string
+    let value = (match[2] || '')
+
+    // Remove whitespace
+    value = value.trim()
+
+    // Check if double quoted
+    const maybeQuote = value[0]
+
+    // Remove surrounding quotes
+    value = value.replace(/^(['"`])([\s\S]*)\1$/mg, '$2')
+
+    // Expand newlines if double quoted
+    if (maybeQuote === '"') {
+      value = value.replace(/\\n/g, '\n')
+      value = value.replace(/\\r/g, '\r')
+    }
+
+    // Add to object
+    obj[key] = value
+  }
+
+  return obj
+}
+
+function _log (message) {
+  console.log(`[dotenv][DEBUG] ${message}`)
+}
+
+function _resolveHome (envPath) {
+  return envPath[0] === '~' ? path.join(os.homedir(), envPath.slice(1)) : envPath
+}
+
+// Populates process.env from .env file
+function config (options) {
+  let dotenvPath = path.resolve(process.cwd(), '.env')
+  let encoding = 'utf8'
+  const debug = Boolean(options && options.debug)
+  const override = Boolean(options && options.override)
+
+  if (options) {
+    if (options.path != null) {
+      dotenvPath = _resolveHome(options.path)
+    }
+    if (options.encoding != null) {
+      encoding = options.encoding
+    }
+  }
+
+  try {
+    // Specifying an encoding returns a string instead of a buffer
+    const parsed = DotenvModule.parse(fs.readFileSync(dotenvPath, { encoding }))
+
+    Object.keys(parsed).forEach(function (key) {
+      if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
+        process.env[key] = parsed[key]
+      } else {
+        if (override === true) {
+          process.env[key] = parsed[key]
+        }
+
+        if (debug) {
+          if (override === true) {
+            _log(`"${key}" is already defined in \`process.env\` and WAS overwritten`)
+          } else {
+            _log(`"${key}" is already defined in \`process.env\` and was NOT overwritten`)
+          }
+        }
+      }
+    })
+
+    return { parsed }
+  } catch (e) {
+    if (debug) {
+      _log(`Failed to load ${dotenvPath} ${e.message}`)
+    }
+
+    return { error: e }
+  }
+}
+
+const DotenvModule = {
+  config,
+  parse
+}
+
+module.exports.config = DotenvModule.config
+module.exports.parse = DotenvModule.parse
+module.exports = DotenvModule
 
 
 /***/ }),
@@ -30156,10 +30228,27 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.printVersion = exports.helper = exports.setVerbose = exports.printQuery = exports.loadFile = exports.query = exports.getConnection = exports.getInstanceList = exports.destroy = exports.create = exports.setLogger = exports.createLogger = void 0;
-const NodeDB = __importStar(__webpack_require__(5833));
+exports.helper = exports.setVerbose = exports.printQuery = exports.loadFile = exports.query = exports.getConnection = exports.getInstanceList = exports.destroy = exports.create = exports.setLogger = exports.createLogger = void 0;
+const fs = __webpack_require__(7147);
+const util_1 = __importDefault(__webpack_require__(3837));
+__webpack_require__(371);
+const mysql = __importStar(__webpack_require__(4426));
 const db_connection_1 = __webpack_require__(1971);
+const helper = __importStar(__webpack_require__(5791));
+exports.helper = helper;
 const instanceList = {};
 let defaultInstance;
 let isVerbose = true;
@@ -30204,7 +30293,6 @@ const setLogger = (mLogger) => {
     if (typeof mLogger.info !== 'function')
         throw new Error('logger must has .info function');
     customLogger = mLogger;
-    NodeDB.setLogger(logger); // TODO
 };
 exports.setLogger = setLogger;
 const create = (connName, settings) => {
@@ -30226,27 +30314,86 @@ const create = (connName, settings) => {
     const instance = new db_connection_1.DBConnection(connName);
     instance.init(settings);
     instanceList[connName] = exports[connName] = instance;
-    NodeDB.setInstanceList(instanceList); // TODO
     if (!defaultInstance) {
         defaultInstance = instance;
-        NodeDB.setDefaultInstance(defaultInstance); // TODO
     }
     return instance;
 };
 exports.create = create;
-exports.destroy = NodeDB.destroy;
-exports.getInstanceList = NodeDB.getInstanceList;
-exports.getConnection = NodeDB.getConnection;
-exports.query = NodeDB.query;
-exports.loadFile = NodeDB.loadFile;
-exports.printQuery = NodeDB.printQuery;
-exports.setVerbose = NodeDB.setVerbose;
-exports.helper = NodeDB.helper;
-const printVersion = (version) => {
-    console.log(`NodeDB Version >> ${version}`);
+const destroy = (connName) => {
+    if (instanceList[connName]) {
+        instanceList[connName].destroy();
+        delete instanceList[connName];
+        return;
+    }
+    Object.keys(instanceList).forEach((key) => {
+        instanceList[key].destroy();
+        delete instanceList[key];
+    });
 };
-exports.printVersion = printVersion;
-(0, exports.printVersion)(`v1`);
+exports.destroy = destroy;
+const getInstanceList = () => {
+    return instanceList;
+};
+exports.getInstanceList = getInstanceList;
+const getConnection = (opts) => {
+    let connection = mysql.createConnection(opts);
+    let query = util_1.default.promisify(connection.query.bind(connection));
+    let end = connection.end.bind(connection);
+    return {
+        // query: async (...args: []) => {
+        //   const query = util.promisify(connection.query.bind(connection));
+        //   return query(...args);
+        // },
+        query,
+        end,
+    };
+};
+exports.getConnection = getConnection;
+const query = (stmt, params = []) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!defaultInstance) {
+        return Promise.reject(new Error(`db :: no default instance`));
+    }
+    return defaultInstance.query(stmt, params);
+});
+exports.query = query;
+/**
+* Load .sql file with multiple statements connection
+* @param  {string} filepath full path of source file
+* @return {[type]}          [description]
+*/
+const loadFile = (settings, filepath) => __awaiter(void 0, void 0, void 0, function* () {
+    logger.log(`<${typeof settings === 'string' ? settings : settings.host}> :: #loadFile :: ${filepath}`);
+    if (typeof settings !== 'string') {
+        settings.multipleStatements = true;
+    }
+    let connection = mysql.createConnection(settings);
+    let readFilePromise = util_1.default.promisify(fs.readFile);
+    let stmts = yield readFilePromise(filepath, 'utf8');
+    // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
+    // console.log(stmts);
+    let query = util_1.default.promisify(connection.query.bind(connection));
+    yield query(stmts);
+    connection.end();
+    return true;
+});
+exports.loadFile = loadFile;
+const printQuery = (_stmt, _params) => {
+    if (!defaultInstance) {
+        return null;
+    }
+    let stmt = mysql.format(_stmt, _params);
+    return stmt;
+};
+exports.printQuery = printQuery;
+const setVerbose = (v) => {
+    isVerbose = v;
+    Object.keys(instanceList).forEach((key) => {
+        let conn = instanceList[key];
+        conn.setVerbose(v);
+    });
+};
+exports.setVerbose = setVerbose;
 
 
 /***/ }),
@@ -30301,6 +30448,22 @@ module.exports = require("fs");
 
 "use strict";
 module.exports = require("net");
+
+/***/ }),
+
+/***/ 37:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("os");
+
+/***/ }),
+
+/***/ 17:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
 
 /***/ }),
 

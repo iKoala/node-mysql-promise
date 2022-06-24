@@ -1,5 +1,6 @@
-import * as NodeDB from './index-db';
+import 'dotenv/config';
 import { DBConnection } from './lib/db-connection';
+import * as helper from './lib/helper';
 interface Logger {
     info: any;
     log: any;
@@ -8,17 +9,17 @@ interface Logger {
 export declare const createLogger: (info: any, log: any, warn: any) => Logger;
 export declare const setLogger: (mLogger: Logger) => void;
 export declare const create: (connName: string, settings: any) => DBConnection | null;
-export declare const destroy: (connName: any) => void;
-export declare const getInstanceList: () => {};
-export declare const getConnection: (opts: any) => {
-    query: (...args: any[]) => Promise<any>;
-    end: any;
-};
-export declare const query: (stmt: any, params: any) => Promise<any>;
-export declare const loadFile: (settings: any, filepath: string) => [type];
-export declare const printQuery: (_stmt: any, _params: any) => any;
-export declare const setVerbose: (v: any) => void;
-export declare const helper: typeof NodeDB.helper;
-export declare const printVersion: (version: string) => void;
-export {};
+export declare const destroy: Function;
+export declare const getInstanceList: Function;
+export declare const getConnection: Function;
+export declare const query: Function;
+/**
+* Load .sql file with multiple statements connection
+* @param  {string} filepath full path of source file
+* @return {[type]}          [description]
+*/
+export declare const loadFile: Function;
+export declare const printQuery: Function;
+export declare const setVerbose: (v: boolean) => void;
+export { helper };
 //# sourceMappingURL=index.d.ts.map

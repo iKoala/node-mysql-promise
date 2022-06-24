@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "mocha",
-    "bundle": "webpack"
+    "bundle": "webpack",
+    "dev": "webpack --watch"
   },
   "repository": {
     "type": "git",
@@ -23,10 +24,12 @@
   },
   "homepage": "https://github.com/iKoala/node-mysql-promise#readme",
   "dependencies": {
+    "dotenv": "^16.0.1",
     "lodash": "^4.17.21",
     "mysql": "^2.18.1"
   },
   "devDependencies": {
+    "@types/mysql": "^2.15.21",
     "eslint": "^8.16.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",
