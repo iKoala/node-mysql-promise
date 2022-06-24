@@ -30252,7 +30252,6 @@ exports.helper = helper;
 const instanceList = {};
 let defaultInstance;
 let isVerbose = true;
-;
 const createLogger = (info, log, warn) => {
     return { info, log, warn };
 };
@@ -30337,9 +30336,9 @@ const getInstanceList = () => {
 };
 exports.getInstanceList = getInstanceList;
 const getConnection = (opts) => {
-    let connection = mysql.createConnection(opts);
-    let query = util_1.default.promisify(connection.query.bind(connection));
-    let end = connection.end.bind(connection);
+    const connection = mysql.createConnection(opts);
+    const query = util_1.default.promisify(connection.query.bind(connection));
+    const end = connection.end.bind(connection);
     return {
         // query: async (...args: []) => {
         //   const query = util.promisify(connection.query.bind(connection));
@@ -30367,13 +30366,13 @@ const loadFile = (settings, filepath) => __awaiter(void 0, void 0, void 0, funct
     if (typeof settings !== 'string') {
         settings.multipleStatements = true;
     }
-    let connection = mysql.createConnection(settings);
-    let readFilePromise = util_1.default.promisify(fs_1.default.readFile);
-    let stmts = yield readFilePromise(filepath, 'utf8');
+    const connection = mysql.createConnection(settings);
+    const readFilePromise = util_1.default.promisify(fs_1.default.readFile);
+    const stmts = yield readFilePromise(filepath, 'utf8');
     // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
     // console.log(stmts);
-    let query = util_1.default.promisify(connection.query.bind(connection));
-    yield query(stmts);
+    const queryPromise = util_1.default.promisify(connection.query.bind(connection));
+    yield queryPromise(stmts);
     connection.end();
     return true;
 });
@@ -30382,14 +30381,14 @@ const printQuery = (_stmt, _params) => {
     if (!defaultInstance) {
         return null;
     }
-    let stmt = mysql.format(_stmt, _params);
+    const stmt = mysql.format(_stmt, _params);
     return stmt;
 };
 exports.printQuery = printQuery;
 const setVerbose = (v) => {
     isVerbose = v;
     Object.keys(instanceList).forEach((key) => {
-        let conn = instanceList[key];
+        const conn = instanceList[key];
         conn.setVerbose(v);
     });
 };

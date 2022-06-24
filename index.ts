@@ -13,7 +13,7 @@ interface Logger {
   info: any;
   log: any;
   warn: any;
-};
+}
 export const createLogger = (info: any, log: any, warn: any): Logger => {
   return { info, log, warn };
 };
@@ -59,7 +59,7 @@ export const create = (connName: string, settings: any): DBConnection | null => 
   logger.info(`db.create :: <${connName}> :: host >> ${settings.host}, database >> ${settings.database}`);
 
   if (!settings.host || settings.host.length === 0) {
-    logger.warn(`db ${connName} :: Invalid host config. Database not available.`)
+    logger.warn(`db ${connName} :: Invalid host config. Database not available.`);
     return null;
   }
 
@@ -95,9 +95,9 @@ export const getInstanceList: Function = (): object => {
 };
 
 export const getConnection: Function = (opts: string | mysql.ConnectionConfig): { query: Function, end: Function } => {
-  let connection = mysql.createConnection(opts);
-  let query: Function = util.promisify(connection.query.bind(connection));
-  let end: Function = connection.end.bind(connection);
+  const connection = mysql.createConnection(opts);
+  const query: Function = util.promisify(connection.query.bind(connection));
+  const end: Function = connection.end.bind(connection);
   return {
     // query: async (...args: []) => {
     //   const query = util.promisify(connection.query.bind(connection));
@@ -109,7 +109,7 @@ export const getConnection: Function = (opts: string | mysql.ConnectionConfig): 
 };
 
 export const query: Function = async (stmt: string, params: Array<any> = []): Promise<any> => {
-  if (!defaultInstance) { return Promise.reject(new Error(`db :: no default instance`)) }
+  if (!defaultInstance) { return Promise.reject(new Error(`db :: no default instance`)); }
   return defaultInstance.query(stmt, params);
 };
 
@@ -124,17 +124,17 @@ export const loadFile: Function = async (settings: string | mysql.ConnectionConf
   if (typeof settings !== 'string') {
     settings.multipleStatements = true;
   }
-  let connection = mysql.createConnection(settings);
+  const connection: mysql.Connection = mysql.createConnection(settings);
 
-  let readFilePromise = util.promisify(fs.readFile);
+  const readFilePromise: Function = util.promisify(fs.readFile);
 
-  let stmts = await readFilePromise(filepath, 'utf8');
+  const stmts: string = await readFilePromise(filepath, 'utf8');
 
   // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
   // console.log(stmts);
 
-  let query = util.promisify(connection.query.bind(connection));
-  await query(stmts);
+  const queryPromise = util.promisify(connection.query.bind(connection));
+  await queryPromise(stmts);
 
   connection.end();
 
@@ -143,14 +143,14 @@ export const loadFile: Function = async (settings: string | mysql.ConnectionConf
 
 export const printQuery: Function = (_stmt: string, _params: Array<any>): string | null => {
   if (!defaultInstance) { return null; }
-  let stmt = mysql.format(_stmt, _params);
+  const stmt = mysql.format(_stmt, _params);
   return stmt;
 };
 
 export const setVerbose = (v: boolean): void => {
   isVerbose = v;
   Object.keys(instanceList).forEach((key) => {
-    let conn: DBConnection = instanceList[key];
+    const conn: DBConnection = instanceList[key];
     conn.setVerbose(v);
   });
 };
