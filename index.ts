@@ -1,12 +1,11 @@
-const fs = require('fs');
+import fs from 'fs';
 import util from 'util';
 import 'dotenv/config';
 import * as mysql from 'mysql';
-import * as NodeDB from './index-db';
 import { DBConnection } from './lib/db-connection';
 import * as helper from './lib/helper';
 
-const instanceList: { [key: string] : DBConnection } = {};
+const instanceList: { [key: string]: DBConnection } = {};
 let defaultInstance: DBConnection;
 let isVerbose: boolean = true;
 
@@ -134,7 +133,7 @@ export const loadFile: Function = async (settings: string | mysql.ConnectionConf
   // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
   // console.log(stmts);
 
-  let query = util.promisify(connection.query.bind(connection))
+  let query = util.promisify(connection.query.bind(connection));
   await query(stmts);
 
   connection.end();
@@ -148,7 +147,7 @@ export const printQuery: Function = (_stmt: string, _params: Array<any>): string
   return stmt;
 };
 
-export const setVerbose = (v: boolean) => {
+export const setVerbose = (v: boolean): void => {
   isVerbose = v;
   Object.keys(instanceList).forEach((key) => {
     let conn: DBConnection = instanceList[key];

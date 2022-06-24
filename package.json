@@ -10,7 +10,8 @@
   "scripts": {
     "test": "mocha",
     "bundle": "webpack",
-    "dev": "webpack --watch"
+    "dev": "webpack --watch",
+    "eslint": "eslint index.ts"
   },
   "repository": {
     "type": "git",

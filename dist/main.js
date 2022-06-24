@@ -30242,7 +30242,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.helper = exports.setVerbose = exports.printQuery = exports.loadFile = exports.query = exports.getConnection = exports.getInstanceList = exports.destroy = exports.create = exports.setLogger = exports.createLogger = void 0;
-const fs = __webpack_require__(7147);
+const fs_1 = __importDefault(__webpack_require__(7147));
 const util_1 = __importDefault(__webpack_require__(3837));
 __webpack_require__(5371);
 const mysql = __importStar(__webpack_require__(4426));
@@ -30368,7 +30368,7 @@ const loadFile = (settings, filepath) => __awaiter(void 0, void 0, void 0, funct
         settings.multipleStatements = true;
     }
     let connection = mysql.createConnection(settings);
-    let readFilePromise = util_1.default.promisify(fs.readFile);
+    let readFilePromise = util_1.default.promisify(fs_1.default.readFile);
     let stmts = yield readFilePromise(filepath, 'utf8');
     // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
     // console.log(stmts);
