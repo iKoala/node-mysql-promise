@@ -2,7 +2,7 @@
 
 const path = require('path');
 const assert = require('assert');
-const db = require('../index');
+const db = require('../dist/main');
 const testConfig = require('./index');
 
 const { helper } = db;

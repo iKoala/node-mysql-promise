@@ -1,7 +1,7 @@
 /* eslint-disable quote-props */
 
 const assert = require('assert');
-const db = require('../index');
+const db = require('../dist/main');
 const testConfig = require('./index');
 
 const DB_CONFIG = testConfig.getDBConfig();
