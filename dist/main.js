@@ -11,72 +11,6 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 1971:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-const util = __webpack_require__(3837);
-const mysql = __webpack_require__(4426);
-
-class DBConnection {
-  /**
-   * @constructor
-   * @param {object} settings MySQL Settings
-   */
-  constructor(connName) {
-    this.name = `[db::${connName}]`;
-    this.settings = null;
-    this.pool = null;
-    this.activeConnection = 0;
-    this.verbose = true;
-    this.logger = console;
-  }
-
-  init(settings, logger = null) {
-    this.settings = settings;
-    this.pool = mysql.createPool(settings);
-    this.poolQuery = util.promisify(this.pool.query.bind(this.pool));
-    this.logger = logger || this.logger;
-  }
-
-  destroy() {
-    if (this.pool) {
-      this.pool.end();
-      this.pool = null;
-      this.activeConnection = 0;
-    }
-  }
-
-  /**
-   * Execute query and return result set
-   * @public
-   * @memberOf exports
-   */
-  async query(stmt, params) {
-    if (this.verbose) {
-      this.logger.log(`${this.name} :: query :: stmt >> ${mysql.format(stmt, params)}`);
-    }
-    let self = this;
-    this.activeConnection += 1;
-    let results = await self.poolQuery(stmt, params);
-    self.activeConnection -= 1;
-    return results;
-  }
-
-  getActiveConnection() {
-    return this.activeConnection;
-  }
-
-  setVerbose(verbose) {
-    this.logger.log(`setVerbose >> ${verbose}`);
-    this.verbose = verbose;
-  }
-}
-
-exports.DBConnection = DBConnection;
-
-
-/***/ }),
-
 /***/ 5791:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -30246,7 +30180,7 @@ const fs_1 = __importDefault(__webpack_require__(7147));
 const util_1 = __importDefault(__webpack_require__(3837));
 __webpack_require__(5371);
 const mysql = __importStar(__webpack_require__(4426));
-const db_connection_1 = __webpack_require__(1971);
+const db_connection_1 = __importDefault(__webpack_require__(8290));
 const helper = __importStar(__webpack_require__(5791));
 exports.helper = helper;
 const instanceList = {};
@@ -30310,7 +30244,7 @@ const create = (connName, settings) => {
         logger.warn(`db <${connName}> :: Invalid password config. Database not available.`);
         return null;
     }
-    const instance = new db_connection_1.DBConnection(connName);
+    const instance = new db_connection_1.default(connName);
     instance.init(settings);
     instanceList[connName] = exports[connName] = instance;
     if (!defaultInstance) {
@@ -30393,6 +30327,91 @@ const setVerbose = (v) => {
     });
 };
 exports.setVerbose = setVerbose;
+
+
+/***/ }),
+
+/***/ 8290:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const util_1 = __importDefault(__webpack_require__(3837));
+const mysql_1 = __importDefault(__webpack_require__(4426));
+class DBConnection {
+    /**
+     * @constructor
+     * @param {object} settings MySQL Settings
+     */
+    constructor(connName) {
+        this.name = '';
+        this.settings = null;
+        this.pool = null;
+        this.poolQuery = null;
+        // poolQuery: ((argv: string | QueryOptions) => Promise<Query>) | null = null;
+        this.activeConnection = 0;
+        this.verbose = true;
+        this.logger = console;
+        this.name = `[db::${connName}]`;
+        // this.settings = null;
+        // this.pool = null;
+        // this.activeConnection = 0;
+        // this.verbose = true;
+        // this.logger = console;
+    }
+    init(settings, logger) {
+        this.settings = settings;
+        this.pool = mysql_1.default.createPool(settings);
+        this.poolQuery = util_1.default.promisify(this.pool.query.bind(this.pool));
+        this.logger = logger || this.logger;
+    }
+    destroy() {
+        if (this.pool) {
+            this.pool.end();
+            this.pool = null;
+            this.poolQuery = null;
+            this.activeConnection = 0;
+        }
+    }
+    /**
+     * Execute query and return result set
+     * @public
+     * @memberOf exports
+     */
+    query(stmt, params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.verbose) {
+                this.logger.log(`${this.name} :: query :: stmt >> ${mysql_1.default.format(stmt, params)}`);
+            }
+            // let self = this;
+            this.activeConnection += 1;
+            const results = this.poolQuery && (yield this.poolQuery(stmt, params));
+            this.activeConnection -= 1;
+            return results;
+        });
+    }
+    getActiveConnection() {
+        return this.activeConnection;
+    }
+    setVerbose(verbose) {
+        this.logger.log(`setVerbose >> ${verbose}`);
+        this.verbose = verbose;
+    }
+}
+exports["default"] = DBConnection;
 
 
 /***/ }),

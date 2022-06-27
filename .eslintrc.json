@@ -20,6 +20,13 @@
     "plugins": [
       "@typescript-eslint"
     ],
+    "settings": {
+      "import/resolver": {
+        "node": {
+          "extensions": [".js", ".jsx", ".ts", ".tsx"]
+        }
+      }
+    },
     "rules": {
       "semi": "warn",
       "quotes": ["off", "backtick", {"allowTemplateLiterals": true}],
@@ -44,6 +51,17 @@
       "class-methods-use-this": "off",
       "prefer-arrow-callback": "warn",
       "no-param-reassign": "warn",
-      "max-classes-per-file": "off"
+      "max-len": "warn",
+      "max-classes-per-file": "off",
+      "import/extensions": [
+        "error",
+        "ignorePackages",
+        {
+          "js": "never",
+          "jsx": "never",
+          "ts": "never",
+          "tsx": "never"
+        }
+     ]
     }
 }

@@ -2,18 +2,14 @@ import fs from 'fs';
 import util from 'util';
 import 'dotenv/config';
 import * as mysql from 'mysql';
-import { DBConnection } from './lib/db-connection';
+import DBConnection from './lib/db-connection';
 import * as helper from './lib/helper';
+import { Logger } from './src/interface';
 
 const instanceList: { [key: string]: DBConnection } = {};
 let defaultInstance: DBConnection;
 let isVerbose: boolean = true;
 
-interface Logger {
-  info: any;
-  log: any;
-  warn: any;
-}
 export const createLogger = (info: any, log: any, warn: any): Logger => {
   return { info, log, warn };
 };
@@ -47,7 +43,7 @@ export const setLogger = (mLogger: Logger): void => {
   customLogger = mLogger;
 };
 
-export const create = (connName: string, settings: any): DBConnection | null => {
+export const create = (connName: string, settings: mysql.ConnectionConfig): DBConnection | null => {
   if (!connName) {
     throw new Error('missing connection name');
   }
@@ -94,7 +90,9 @@ export const getInstanceList: Function = (): object => {
   return instanceList;
 };
 
-export const getConnection: Function = (opts: string | mysql.ConnectionConfig): { query: Function, end: Function } => {
+export const getConnection: Function = (
+  opts: string | mysql.ConnectionConfig
+): { query: Function, end: Function } => {
   const connection = mysql.createConnection(opts);
   const query: Function = util.promisify(connection.query.bind(connection));
   const end: Function = connection.end.bind(connection);
@@ -118,7 +116,10 @@ export const query: Function = async (stmt: string, params: Array<any> = []): Pr
 * @param  {string} filepath full path of source file
 * @return {[type]}          [description]
 */
-export const loadFile: Function = async (settings: string | mysql.ConnectionConfig, filepath: string): Promise<boolean> => {
+export const loadFile: Function = async (
+  settings: string | mysql.ConnectionConfig,
+  filepath: string
+): Promise<boolean> => {
   logger.log(`<${typeof settings === 'string' ? settings : settings.host}> :: #loadFile :: ${filepath}`);
 
   if (typeof settings !== 'string') {
