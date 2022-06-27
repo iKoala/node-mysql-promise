@@ -2,9 +2,9 @@ import fs from 'fs';
 import util from 'util';
 import 'dotenv/config';
 import * as mysql from 'mysql';
-import DBConnection from './lib/db-connection';
-import * as helper from './lib/helper';
-import { Logger } from './src/interface';
+import DBConnection from '../lib/db-connection';
+import * as helper from '../lib/helper';
+import { Logger } from './interface';
 
 const instanceList: { [key: string]: DBConnection } = {};
 let defaultInstance: DBConnection;

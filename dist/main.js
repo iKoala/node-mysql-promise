@@ -19,7 +19,7 @@ return /******/ (() => { // webpackBootstrap
  */
 const util = __webpack_require__(3837);
 const _ = __webpack_require__(6486);
-const db = __webpack_require__(8492);
+const db = __webpack_require__(3607);
 
 exports.createSelect = (table, idField) => {
   return async function (...args) {
@@ -30134,7 +30134,92 @@ function simpleEnd(buf) {
 
 /***/ }),
 
-/***/ 8492:
+/***/ 8290:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const util_1 = __importDefault(__webpack_require__(3837));
+const mysql_1 = __importDefault(__webpack_require__(4426));
+class DBConnection {
+    /**
+     * @constructor
+     * @param {object} settings MySQL Settings
+     */
+    constructor(connName) {
+        this.name = '';
+        this.settings = null;
+        this.pool = null;
+        this.poolQuery = null;
+        // poolQuery: ((argv: string | QueryOptions) => Promise<Query>) | null = null;
+        this.activeConnection = 0;
+        this.verbose = true;
+        this.logger = console;
+        this.name = `[db::${connName}]`;
+        // this.settings = null;
+        // this.pool = null;
+        // this.activeConnection = 0;
+        // this.verbose = true;
+        // this.logger = console;
+    }
+    init(settings, logger) {
+        this.settings = settings;
+        this.pool = mysql_1.default.createPool(settings);
+        this.poolQuery = util_1.default.promisify(this.pool.query.bind(this.pool));
+        this.logger = logger || this.logger;
+    }
+    destroy() {
+        if (this.pool) {
+            this.pool.end();
+            this.pool = null;
+            this.poolQuery = null;
+            this.activeConnection = 0;
+        }
+    }
+    /**
+     * Execute query and return result set
+     * @public
+     * @memberOf exports
+     */
+    query(stmt, params) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.verbose) {
+                this.logger.log(`${this.name} :: query :: stmt >> ${mysql_1.default.format(stmt, params)}`);
+            }
+            // let self = this;
+            this.activeConnection += 1;
+            const results = this.poolQuery && (yield this.poolQuery(stmt, params));
+            this.activeConnection -= 1;
+            return results;
+        });
+    }
+    getActiveConnection() {
+        return this.activeConnection;
+    }
+    setVerbose(verbose) {
+        this.logger.log(`setVerbose >> ${verbose}`);
+        this.verbose = verbose;
+    }
+}
+exports["default"] = DBConnection;
+
+
+/***/ }),
+
+/***/ 3607:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -30327,91 +30412,6 @@ const setVerbose = (v) => {
     });
 };
 exports.setVerbose = setVerbose;
-
-
-/***/ }),
-
-/***/ 8290:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const util_1 = __importDefault(__webpack_require__(3837));
-const mysql_1 = __importDefault(__webpack_require__(4426));
-class DBConnection {
-    /**
-     * @constructor
-     * @param {object} settings MySQL Settings
-     */
-    constructor(connName) {
-        this.name = '';
-        this.settings = null;
-        this.pool = null;
-        this.poolQuery = null;
-        // poolQuery: ((argv: string | QueryOptions) => Promise<Query>) | null = null;
-        this.activeConnection = 0;
-        this.verbose = true;
-        this.logger = console;
-        this.name = `[db::${connName}]`;
-        // this.settings = null;
-        // this.pool = null;
-        // this.activeConnection = 0;
-        // this.verbose = true;
-        // this.logger = console;
-    }
-    init(settings, logger) {
-        this.settings = settings;
-        this.pool = mysql_1.default.createPool(settings);
-        this.poolQuery = util_1.default.promisify(this.pool.query.bind(this.pool));
-        this.logger = logger || this.logger;
-    }
-    destroy() {
-        if (this.pool) {
-            this.pool.end();
-            this.pool = null;
-            this.poolQuery = null;
-            this.activeConnection = 0;
-        }
-    }
-    /**
-     * Execute query and return result set
-     * @public
-     * @memberOf exports
-     */
-    query(stmt, params) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.verbose) {
-                this.logger.log(`${this.name} :: query :: stmt >> ${mysql_1.default.format(stmt, params)}`);
-            }
-            // let self = this;
-            this.activeConnection += 1;
-            const results = this.poolQuery && (yield this.poolQuery(stmt, params));
-            this.activeConnection -= 1;
-            return results;
-        });
-    }
-    getActiveConnection() {
-        return this.activeConnection;
-    }
-    setVerbose(verbose) {
-        this.logger.log(`setVerbose >> ${verbose}`);
-        this.verbose = verbose;
-    }
-}
-exports["default"] = DBConnection;
 
 
 /***/ }),
@@ -33498,7 +33498,7 @@ var BigNumber = clone();
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __webpack_require__(8492);
+/******/ 	var __webpack_exports__ = __webpack_require__(3607);
 /******/ 	
 /******/ 	return __webpack_exports__;
 /******/ })()

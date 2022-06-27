@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import * as mysql from 'mysql';
-import DBConnection from './lib/db-connection';
-import * as helper from './lib/helper';
-import { Logger } from './src/interface';
+import DBConnection from '../lib/db-connection';
+import * as helper from '../lib/helper';
+import { Logger } from './interface';
 export declare const createLogger: (info: any, log: any, warn: any) => Logger;
 export declare const setLogger: (mLogger: Logger) => void;
 export declare const create: (connName: string, settings: mysql.ConnectionConfig) => DBConnection | null;
