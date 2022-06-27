@@ -1,7 +1,8 @@
+.env
 .git
-.eslintrc.json
 **/node_modules/**
 
 # Test directory
 test/**
 test.sql
+test2.sql
