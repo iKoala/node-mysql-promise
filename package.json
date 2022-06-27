@@ -3,7 +3,7 @@
   "version": "1.4.6",
   "description": "Node.js MySQL library promise wrapper",
   "main": "./dist/main.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/src/index.d.ts",
   "engines": {
     "node": ">=8.0.0"
   },
