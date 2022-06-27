@@ -65,7 +65,7 @@ export const create = (connName: string, settings: mysql.ConnectionConfig): DBCo
   }
 
   const instance: DBConnection = new DBConnection(connName);
-  instance.init(settings);
+  instance.init(settings, logger);
   instanceList[connName] = exports[connName] = instance;
   if (!defaultInstance) {
     defaultInstance = instance;

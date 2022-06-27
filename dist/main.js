@@ -30245,7 +30245,7 @@ const create = (connName, settings) => {
         return null;
     }
     const instance = new db_connection_1.default(connName);
-    instance.init(settings);
+    instance.init(settings, logger);
     instanceList[connName] = exports[connName] = instance;
     if (!defaultInstance) {
         defaultInstance = instance;
