@@ -1,10 +1,8 @@
 /**
  * Helper module to create basic Create, Select, Update, Delete functions
  */
-// import util from 'util';
 import _ from 'lodash';
 import * as db from '../src/index';
-// import { InsertConfig, UpdateConfig } from '../src/interface';
 
 export type InsertConfig = {
   defaults?: { [key: string]: any },
@@ -22,7 +20,7 @@ export type UpdateConfig = {
   defaultFields?: { [key: string]: any },
 }
 
-export const createSelect: Function = (table: string, idField: string): Function => {
+export const createSelect = (table: string, idField: string) => {
   return async function (...args: any[]): Promise<any> {
     // `id` should be be Integer or Array
     let id = args[0];
@@ -141,11 +139,11 @@ export const createSelect: Function = (table: string, idField: string): Function
   };
 };
 
-export const createInsert: Function = (
+export const createInsert = (
   tbl: string,
   idField: string,
   _cfg: InsertConfig = {},
-): Function => {
+) => {
   if (!tbl || !idField) {
     throw new Error('createInsert() must provide table and primary key');
   }
@@ -192,7 +190,7 @@ export const createUpdate = (
   table: string,
   primaryKeyField: string,
   _cfg: UpdateConfig = {},
-): Function => {
+) => {
   if (!table || !primaryKeyField) {
     throw new Error('createUpdate() requires table name and primary key field');
   }

@@ -30030,7 +30030,6 @@ exports.createUpdate = exports.createInsert = exports.createSelect = void 0;
 /**
  * Helper module to create basic Create, Select, Update, Delete functions
  */
-// import util from 'util';
 const lodash_1 = __importDefault(__webpack_require__(6486));
 const db = __importStar(__webpack_require__(3607));
 const createSelect = (table, idField) => {
@@ -30333,7 +30332,7 @@ const create = (connName, settings) => {
     return instance;
 };
 exports.create = create;
-const destroy = (connName) => {
+const destroy = (connName = '') => {
     if (instanceList[connName]) {
         instanceList[connName].destroy();
         delete instanceList[connName];

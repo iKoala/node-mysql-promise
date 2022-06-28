@@ -21,7 +21,11 @@ export declare type UpdateConfig = {
         [key: string]: any;
     };
 };
-export declare const createSelect: Function;
-export declare const createInsert: Function;
-export declare const createUpdate: (table: string, primaryKeyField: string, _cfg?: UpdateConfig) => Function;
+export declare const createSelect: (table: string, idField: string) => (...args: any[]) => Promise<any>;
+export declare const createInsert: (tbl: string, idField: string, _cfg?: InsertConfig) => (rc: {
+    [key: string]: any;
+}, _opts?: Object) => Promise<any>;
+export declare const createUpdate: (table: string, primaryKeyField: string, _cfg?: UpdateConfig) => (id: number, _rc: {
+    [key: string]: any;
+}, _opts?: Object) => Promise<any>;
 //# sourceMappingURL=helper.d.ts.map

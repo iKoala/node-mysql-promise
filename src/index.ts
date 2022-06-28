@@ -73,7 +73,7 @@ export const create = (connName: string, settings: mysql.ConnectionConfig): DBCo
   return instance;
 };
 
-export const destroy: Function = (connName: string): void => {
+export const destroy = (connName: string = ''): void => {
   if (instanceList[connName]) {
     instanceList[connName].destroy();
     delete instanceList[connName];
@@ -86,11 +86,11 @@ export const destroy: Function = (connName: string): void => {
   });
 };
 
-export const getInstanceList: Function = (): object => {
+export const getInstanceList = (): Object => {
   return instanceList;
 };
 
-export const getConnection: Function = (
+export const getConnection = (
   opts: string | mysql.ConnectionConfig
 ): { query: Function, end: Function } => {
   const connection = mysql.createConnection(opts);
@@ -106,7 +106,7 @@ export const getConnection: Function = (
   };
 };
 
-export const query: Function = async (stmt: string, params: Array<any> = []): Promise<any> => {
+export const query = async (stmt: string, params: Array<any> = []): Promise<any> => {
   if (!defaultInstance) { return Promise.reject(new Error(`db :: no default instance`)); }
   return defaultInstance.query(stmt, params);
 };
@@ -116,7 +116,7 @@ export const query: Function = async (stmt: string, params: Array<any> = []): Pr
 * @param  {string} filepath full path of source file
 * @return {[type]}          [description]
 */
-export const loadFile: Function = async (
+export const loadFile = async (
   settings: string | mysql.ConnectionConfig,
   filepath: string
 ): Promise<boolean> => {
@@ -142,7 +142,7 @@ export const loadFile: Function = async (
   return true;
 };
 
-export const printQuery: Function = (_stmt: string, _params: Array<any>): string | null => {
+export const printQuery = (_stmt: string, _params: Array<any>): string | null => {
   if (!defaultInstance) { return null; }
   const stmt = mysql.format(_stmt, _params);
   return stmt;
