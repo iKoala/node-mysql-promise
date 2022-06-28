@@ -11,7 +11,7 @@ class DBConnection {
 
   pool: Pool | null = null;
 
-  poolQuery?: Function | null = null;
+  poolQuery: Function | null = null;
   // poolQuery: ((argv: string | QueryOptions) => Promise<Query>) | null = null;
 
   activeConnection: number = 0;

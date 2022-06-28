@@ -11,240 +11,6 @@
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 5791:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-/**
- * Helper module to create basic Create, Select, Update, Delete functions
- */
-const util = __webpack_require__(3837);
-const _ = __webpack_require__(6486);
-const db = __webpack_require__(3607);
-
-exports.createSelect = (table, idField) => {
-  return async function (...args) {
-    // `id` should be be Integer or Array
-    let id = args[0];
-    id = (_.isInteger(id) || Array.isArray(id)) ? id : null;
-
-    // opts should be object{}
-    let opts = args[args.length - 1];
-    opts = (_.isPlainObject(opts)) ? opts : {};
-
-    if (!id && !opts.where && opts.all !== true) {
-      throw new Error('select query must provide `id`, `where` clause or set options.all = true');
-    }
-
-    if (opts.where && !_.isPlainObject(opts.where)) {
-      throw new Error('`where` caluse must be plain object');
-    }
-
-    // Remove where clause if select all
-    if (opts.all === true) {
-      id = null;
-      delete opts.where;
-    }
-
-    let stmt;
-    let params = [];
-
-    if (opts.fields) {
-      stmt = 'SELECT ?? FROM ??';
-      params.push(opts.fields);
-      params.push(table);
-    } else {
-      stmt = 'SELECT * FROM ??';
-      params.push(table);
-    }
-
-    // Support integer id
-    let isIntegerID = (idField && id && _.isInteger(id));
-    if (isIntegerID) {
-      stmt += ' WHERE ?? = ? LIMIT 1';
-      params.push(idField);
-      params.push(id);
-    }
-
-    // Support array id
-    let isArrayID = (idField && id && Array.isArray(id));
-    if (isArrayID) {
-      if (id.length === 0) {
-        return [];
-      }
-      stmt += ' WHERE ?? IN (?)';
-      params.push(idField);
-      params.push(id);
-    }
-
-    // support where object
-    if (opts.where && _.isPlainObject(opts.where)) {
-      let whereArr = [];
-      _.each(opts.where, function(val, key) {
-        if (Array.isArray(val)) {
-          whereArr.push(`?? IN (?)`);
-          if (val.length === 0) {
-            val.push(0);
-          }
-        } else {
-          whereArr.push('?? = ?');
-        }
-        params.push(key);
-        params.push(val);
-      });
-      stmt += ' WHERE ' + whereArr.join(' AND ');
-    }
-
-    if (opts.order) {
-      if (!Array.isArray(opts.order)) {
-        throw new Error('options.order only support Array type, e.g. ["field", "ASC"], [["field", "DESC"]]');
-      }
-      const orderArr = []
-      // Array of String
-      if (typeof opts.order[0] === 'string') {
-        let [field, order] = opts.order;
-        order = (_.toString(order).toUpperCase() === 'ASC' || _.toString(order).toUpperCase() === 'DESC')
-          ? order : 'ASC';
-        let orderStr = `?? ${order}`;
-        orderArr.push(orderStr);
-        params.push(field);
-      }
-      // Array of Array
-      if (Array.isArray(opts.order[0])) {
-        _.each(opts.order, (o) => {
-          let [field, order] = o;
-          order = (_.toString(order).toUpperCase() === 'ASC' || _.toString(order).toUpperCase() === 'DESC')
-            ? order : 'ASC';
-          let orderStr = `?? ${order}`;
-          orderArr.push(orderStr);
-          params.push(field);
-        })
-      }
-      stmt += ' ORDER BY ' + orderArr.join(', ');
-    }
-
-    if (opts.limit && _.isInteger(opts.limit)) {
-      stmt += ' LIMIT ?';
-      params.push(opts.limit);
-    }
-
-    if (opts.offset && _.isInteger(opts.offset)) {
-      stmt += ' OFFSET ?';
-      params.push(opts.offset);
-    }
-
-    let rs = await db.query(stmt, params)
-    if (isIntegerID) {
-      return rs[0];
-    }
-    return rs;
-  };
-};
-
-exports.createInsert = function (tbl, idField, _cfg) {
-  if (!tbl || !idField) {
-    throw new Error('createInsert() should provide table and primary key');
-  }
-  return async function (rc, _opts) {
-    const cfg = _cfg || {};
-    const opts = _opts || {};
-
-    const defaultFields = cfg.defaults || cfg.defaultFields;
-
-    // skip generate ID with ticket system
-    // if (!cfg.skipId) {
-    //   return ticket.generate(tbl)
-    //     .then(function(id) {
-    //       rc[idField] = id;
-    //     });
-    // }
-
-    // override default fields, support both object-like and array
-    if (_.isPlainObject(defaultFields)) {
-      rc = _.assignWith(rc, defaultFields, function(objVal, srcVal) {
-        if (_.isFunction(srcVal)) {
-          return srcVal();
-        }
-        return srcVal;
-      });
-    }
-
-    // Not supporting ha
-    // if (Array.isArray(cfg.defaultFields)) {
-    //   rc = fieldRunner(rc, cfg.defaultFields);
-    // }
-
-    let stmt = 'INSERT INTO ?? SET ?';
-
-    if (cfg.insertIgnore === true || cfg.ignore === true) {
-      stmt = 'INSERT IGNORE INTO ?? SET ?';
-    }
-
-    if (cfg.replaceInto === true || cfg.replace === true) {
-      stmt = 'REPLACE INTO ?? SET ?';
-    }
-
-    let params = [tbl, rc];
-
-    let rs = await db.query(stmt, params);
-
-    //   console.log(rs);
-
-    // if (!rs.insertId) {
-    //   return null;
-    // }
-
-    rc[idField] = !rc[idField] ? rs.insertId : rc[idField];
-    // rc[idField] = rs.insertId;
-    return rc;
-  };
-};
-
-exports.createUpdate = function (table, primaryKeyField, _cfg) {
-  if (!table || !primaryKeyField) {
-    throw new Error('createUpdate() requires table name and primary key field');
-  }
-  return async function (id, _rc, _opts) {
-    const cfg = _cfg || {};
-    const opts = _opts || {};
-    let rc = _.clone(_rc || {});
-    delete rc[primaryKeyField]; // Does not allow to update primary key field
-
-    const restrictedFields = cfg.restricts || cfg.restrictedFields;
-    if (restrictedFields) {
-      _.each(restrictedFields, (field) => {
-        if (_.has(rc, field)) {
-          throw new Error(`udpate query failed, \`${field}\` is restricted`)
-        }
-      })
-    }
-
-    const defaultFields = cfg.defaults || cfg.defaultFields;
-    if (_.isPlainObject(defaultFields)) {
-      rc = _.assignWith(rc, defaultFields, function(objVal, srcVal) {
-        if (_.isFunction(srcVal)) {
-          return srcVal();
-        }
-        return srcVal;
-      });
-    }
-
-    let stmt = 'UPDATE ?? SET ? WHERE ?? = ? LIMIT 1';
-    let params = [table, rc, primaryKeyField, id];
-    await db.query(stmt, params)
-
-    // update failed ???
-    // if (result.affectedRows === 0) {
-    //   return null;
-    // }
-
-    rc[primaryKeyField] = id;
-    return rc;
-  };
-};
-
-
-/***/ }),
-
 /***/ 6497:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -30219,6 +29985,235 @@ exports["default"] = DBConnection;
 
 /***/ }),
 
+/***/ 3965:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createUpdate = exports.createInsert = exports.createSelect = void 0;
+/**
+ * Helper module to create basic Create, Select, Update, Delete functions
+ */
+// import util from 'util';
+const lodash_1 = __importDefault(__webpack_require__(6486));
+const db = __importStar(__webpack_require__(3607));
+const createSelect = (table, idField) => {
+    return function (...args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // `id` should be be Integer or Array
+            let id = args[0];
+            id = (lodash_1.default.isInteger(id) || Array.isArray(id)) ? id : null;
+            // opts should be object{}
+            let opts = args[args.length - 1];
+            opts = (lodash_1.default.isPlainObject(opts)) ? opts : {};
+            if (!id && !opts.where && opts.all !== true) {
+                throw new Error('select query must provide `id`, `where` clause or set options.all = true');
+            }
+            if (opts.where && !lodash_1.default.isPlainObject(opts.where)) {
+                throw new Error('`where` caluse must be plain object');
+            }
+            // Remove where clause if select all
+            if (opts.all === true) {
+                id = null;
+                delete opts.where;
+            }
+            let stmt;
+            let params = [];
+            if (opts.fields) {
+                stmt = 'SELECT ?? FROM ??';
+                params.push(opts.fields);
+                params.push(table);
+            }
+            else {
+                stmt = 'SELECT * FROM ??';
+                params.push(table);
+            }
+            // Support integer id
+            const isIntegerID = (idField && id && lodash_1.default.isInteger(id));
+            if (isIntegerID) {
+                stmt += ' WHERE ?? = ? LIMIT 1';
+                params.push(idField);
+                params.push(id);
+            }
+            // Support array id
+            const isArrayID = (idField && id && Array.isArray(id));
+            if (isArrayID) {
+                if (id.length === 0) {
+                    return [];
+                }
+                stmt += ' WHERE ?? IN (?)';
+                params.push(idField);
+                params.push(id);
+            }
+            // support where object
+            if (opts.where && lodash_1.default.isPlainObject(opts.where)) {
+                const whereArr = [];
+                lodash_1.default.each(opts.where, (val, key) => {
+                    if (Array.isArray(val)) {
+                        whereArr.push(`?? IN (?)`);
+                        if (val.length === 0) {
+                            val.push(0);
+                        }
+                    }
+                    else {
+                        whereArr.push('?? = ?');
+                    }
+                    params.push(key);
+                    params.push(val);
+                });
+                stmt += ' WHERE ' + whereArr.join(' AND ');
+            }
+            if (opts.order) {
+                if (!Array.isArray(opts.order)) {
+                    throw new Error('options.order only support Array type, e.g. ["field", "ASC"], [["field", "DESC"]]');
+                }
+                const orderArr = [];
+                // Array of String
+                if (typeof opts.order[0] === 'string') {
+                    let [field, order] = opts.order;
+                    order = (lodash_1.default.toString(order).toUpperCase() === 'ASC' || lodash_1.default.toString(order).toUpperCase() === 'DESC')
+                        ? order : 'ASC';
+                    const orderStr = `?? ${order}`;
+                    orderArr.push(orderStr);
+                    params.push(field);
+                }
+                // Array of Array
+                if (Array.isArray(opts.order[0])) {
+                    lodash_1.default.each(opts.order, (o) => {
+                        let [field, order] = o;
+                        order = (lodash_1.default.toString(order).toUpperCase() === 'ASC' || lodash_1.default.toString(order).toUpperCase() === 'DESC')
+                            ? order : 'ASC';
+                        const orderStr = `?? ${order}`;
+                        orderArr.push(orderStr);
+                        params.push(field);
+                    });
+                }
+                stmt += ' ORDER BY ' + orderArr.join(', ');
+            }
+            if (opts.limit && lodash_1.default.isInteger(opts.limit)) {
+                stmt += ' LIMIT ?';
+                params.push(opts.limit);
+            }
+            if (opts.offset && lodash_1.default.isInteger(opts.offset)) {
+                stmt += ' OFFSET ?';
+                params.push(opts.offset);
+            }
+            const rs = yield db.query(stmt, params);
+            if (isIntegerID) {
+                return rs[0];
+            }
+            return rs;
+        });
+    };
+};
+exports.createSelect = createSelect;
+const createInsert = (tbl, idField, _cfg = {}) => {
+    if (!tbl || !idField) {
+        throw new Error('createInsert() must provide table and primary key');
+    }
+    return function (rc, _opts = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const cfg = _cfg || {};
+            const opts = _opts || {};
+            const defaultFields = cfg.defaults || cfg.defaultFields;
+            // override default fields, support both object-like and array
+            if (lodash_1.default.isPlainObject(defaultFields)) {
+                rc = lodash_1.default.assignWith(rc, defaultFields, (objVal, srcVal) => {
+                    if (lodash_1.default.isFunction(srcVal)) {
+                        return srcVal();
+                    }
+                    return srcVal;
+                });
+            }
+            let stmt = 'INSERT INTO ?? SET ?';
+            if (cfg.insertIgnore === true || cfg.ignore === true) {
+                stmt = 'INSERT IGNORE INTO ?? SET ?';
+            }
+            if (cfg.replaceInto === true || cfg.replace === true) {
+                stmt = 'REPLACE INTO ?? SET ?';
+            }
+            const params = [tbl, rc];
+            const rs = yield db.query(stmt, params);
+            rc[idField] = !rc[idField] ? rs.insertId : rc[idField];
+            return rc;
+        });
+    };
+};
+exports.createInsert = createInsert;
+const createUpdate = (table, primaryKeyField, _cfg = {}) => {
+    if (!table || !primaryKeyField) {
+        throw new Error('createUpdate() requires table name and primary key field');
+    }
+    return (id, _rc, _opts = {}) => __awaiter(void 0, void 0, void 0, function* () {
+        const cfg = _cfg || {};
+        const opts = _opts || {};
+        let rc = lodash_1.default.clone(_rc || {});
+        delete rc[primaryKeyField]; // Does not allow to update primary key field
+        const restrictedFields = cfg.restricts || cfg.restrictedFields;
+        if (restrictedFields) {
+            lodash_1.default.each(restrictedFields, (field) => {
+                if (lodash_1.default.has(rc, field)) {
+                    throw new Error(`update query failed, \`${field}\` is restricted`);
+                }
+            });
+        }
+        const defaultFields = cfg.defaults || cfg.defaultFields;
+        if (lodash_1.default.isPlainObject(defaultFields)) {
+            rc = lodash_1.default.assignWith(rc, defaultFields, (objVal, srcVal) => {
+                if (lodash_1.default.isFunction(srcVal)) {
+                    return srcVal();
+                }
+                return srcVal;
+            });
+        }
+        const stmt = 'UPDATE ?? SET ? WHERE ?? = ? LIMIT 1';
+        const params = [table, rc, primaryKeyField, id];
+        yield db.query(stmt, params);
+        rc[primaryKeyField] = id;
+        return rc;
+    });
+};
+exports.createUpdate = createUpdate;
+
+
+/***/ }),
+
 /***/ 3607:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -30266,7 +30261,7 @@ const util_1 = __importDefault(__webpack_require__(3837));
 __webpack_require__(5371);
 const mysql = __importStar(__webpack_require__(4426));
 const db_connection_1 = __importDefault(__webpack_require__(8290));
-const helper = __importStar(__webpack_require__(5791));
+const helper = __importStar(__webpack_require__(3965));
 exports.helper = helper;
 const instanceList = {};
 let defaultInstance;

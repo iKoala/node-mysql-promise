@@ -4,7 +4,7 @@ declare class DBConnection {
     name: string;
     settings: ConnectionConfig | null;
     pool: Pool | null;
-    poolQuery?: Function | null;
+    poolQuery: Function | null;
     activeConnection: number;
     verbose: boolean;
     logger: Logger;

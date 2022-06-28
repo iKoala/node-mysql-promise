@@ -1,12 +1,29 @@
 /**
  * Helper module to create basic Create, Select, Update, Delete functions
  */
-const util = require('util');
-const _ = require('lodash');
-const db = require('../src/index');
+// import util from 'util';
+import _ from 'lodash';
+import * as db from '../src/index';
+// import { InsertConfig, UpdateConfig } from '../src/interface';
 
-exports.createSelect = (table, idField) => {
-  return async function (...args) {
+export type InsertConfig = {
+  defaults?: { [key: string]: any },
+  defaultFields?: { [key: string]: any },
+  ignore?: boolean,
+  insertIgnore?: boolean,
+  replace?: boolean,
+  replaceInto?: boolean,
+}
+
+export type UpdateConfig = {
+  restricts?: Array<string>,
+  restrictedFields?: Array<string>,
+  defaults?: { [key: string]: any },
+  defaultFields?: { [key: string]: any },
+}
+
+export const createSelect: Function = (table: string, idField: string): Function => {
+  return async function (...args: any[]): Promise<any> {
     // `id` should be be Integer or Array
     let id = args[0];
     id = (_.isInteger(id) || Array.isArray(id)) ? id : null;
@@ -42,7 +59,7 @@ exports.createSelect = (table, idField) => {
     }
 
     // Support integer id
-    let isIntegerID = (idField && id && _.isInteger(id));
+    const isIntegerID: boolean = (idField && id && _.isInteger(id));
     if (isIntegerID) {
       stmt += ' WHERE ?? = ? LIMIT 1';
       params.push(idField);
@@ -50,7 +67,7 @@ exports.createSelect = (table, idField) => {
     }
 
     // Support array id
-    let isArrayID = (idField && id && Array.isArray(id));
+    const isArrayID: boolean = (idField && id && Array.isArray(id));
     if (isArrayID) {
       if (id.length === 0) {
         return [];
@@ -62,8 +79,8 @@ exports.createSelect = (table, idField) => {
 
     // support where object
     if (opts.where && _.isPlainObject(opts.where)) {
-      let whereArr = [];
-      _.each(opts.where, function(val, key) {
+      const whereArr: Array<string> = [];
+      _.each(opts.where, (val, key) => {
         if (Array.isArray(val)) {
           whereArr.push(`?? IN (?)`);
           if (val.length === 0) {
@@ -82,13 +99,13 @@ exports.createSelect = (table, idField) => {
       if (!Array.isArray(opts.order)) {
         throw new Error('options.order only support Array type, e.g. ["field", "ASC"], [["field", "DESC"]]');
       }
-      const orderArr = []
+      const orderArr = [];
       // Array of String
       if (typeof opts.order[0] === 'string') {
         let [field, order] = opts.order;
         order = (_.toString(order).toUpperCase() === 'ASC' || _.toString(order).toUpperCase() === 'DESC')
           ? order : 'ASC';
-        let orderStr = `?? ${order}`;
+        const orderStr = `?? ${order}`;
         orderArr.push(orderStr);
         params.push(field);
       }
@@ -98,10 +115,10 @@ exports.createSelect = (table, idField) => {
           let [field, order] = o;
           order = (_.toString(order).toUpperCase() === 'ASC' || _.toString(order).toUpperCase() === 'DESC')
             ? order : 'ASC';
-          let orderStr = `?? ${order}`;
+          const orderStr = `?? ${order}`;
           orderArr.push(orderStr);
           params.push(field);
-        })
+        });
       }
       stmt += ' ORDER BY ' + orderArr.join(', ');
     }
@@ -116,7 +133,7 @@ exports.createSelect = (table, idField) => {
       params.push(opts.offset);
     }
 
-    let rs = await db.query(stmt, params)
+    const rs: any = await db.query(stmt, params);
     if (isIntegerID) {
       return rs[0];
     }
@@ -124,27 +141,26 @@ exports.createSelect = (table, idField) => {
   };
 };
 
-exports.createInsert = function (tbl, idField, _cfg) {
+export const createInsert: Function = (
+  tbl: string,
+  idField: string,
+  _cfg: InsertConfig = {},
+): Function => {
   if (!tbl || !idField) {
-    throw new Error('createInsert() should provide table and primary key');
+    throw new Error('createInsert() must provide table and primary key');
   }
-  return async function (rc, _opts) {
+  return async function (
+    rc: { [key: string]: any },
+    _opts: Object = {},
+  ): Promise<any> {
     const cfg = _cfg || {};
-    const opts = _opts || {};
+    const opts: Object = _opts || {};
 
-    const defaultFields = cfg.defaults || cfg.defaultFields;
-
-    // skip generate ID with ticket system
-    // if (!cfg.skipId) {
-    //   return ticket.generate(tbl)
-    //     .then(function(id) {
-    //       rc[idField] = id;
-    //     });
-    // }
+    const defaultFields: { [key: string]: any } | undefined = cfg.defaults || cfg.defaultFields;
 
     // override default fields, support both object-like and array
     if (_.isPlainObject(defaultFields)) {
-      rc = _.assignWith(rc, defaultFields, function(objVal, srcVal) {
+      rc = _.assignWith(rc, defaultFields, (objVal: any, srcVal: any) => {
         if (_.isFunction(srcVal)) {
           return srcVal();
         }
@@ -152,12 +168,7 @@ exports.createInsert = function (tbl, idField, _cfg) {
       });
     }
 
-    // Not supporting ha
-    // if (Array.isArray(cfg.defaultFields)) {
-    //   rc = fieldRunner(rc, cfg.defaultFields);
-    // }
-
-    let stmt = 'INSERT INTO ?? SET ?';
+    let stmt: string = 'INSERT INTO ?? SET ?';
 
     if (cfg.insertIgnore === true || cfg.ignore === true) {
       stmt = 'INSERT IGNORE INTO ?? SET ?';
@@ -167,29 +178,31 @@ exports.createInsert = function (tbl, idField, _cfg) {
       stmt = 'REPLACE INTO ?? SET ?';
     }
 
-    let params = [tbl, rc];
+    const params: Array<string | Object> = [tbl, rc];
 
-    let rs = await db.query(stmt, params);
-
-    //   console.log(rs);
-
-    // if (!rs.insertId) {
-    //   return null;
-    // }
+    const rs: any = await db.query(stmt, params);
 
     rc[idField] = !rc[idField] ? rs.insertId : rc[idField];
-    // rc[idField] = rs.insertId;
+
     return rc;
   };
 };
 
-exports.createUpdate = function (table, primaryKeyField, _cfg) {
+export const createUpdate = (
+  table: string,
+  primaryKeyField: string,
+  _cfg: UpdateConfig = {},
+): Function => {
   if (!table || !primaryKeyField) {
     throw new Error('createUpdate() requires table name and primary key field');
   }
-  return async function (id, _rc, _opts) {
-    const cfg = _cfg || {};
-    const opts = _opts || {};
+  return async (
+    id: number,
+    _rc: { [key: string]: any },
+    _opts: Object = {},
+  ): Promise<any> => {
+    const cfg: UpdateConfig = _cfg || {};
+    const opts: Object = _opts || {};
     let rc = _.clone(_rc || {});
     delete rc[primaryKeyField]; // Does not allow to update primary key field
 
@@ -197,14 +210,14 @@ exports.createUpdate = function (table, primaryKeyField, _cfg) {
     if (restrictedFields) {
       _.each(restrictedFields, (field) => {
         if (_.has(rc, field)) {
-          throw new Error(`udpate query failed, \`${field}\` is restricted`)
+          throw new Error(`update query failed, \`${field}\` is restricted`);
         }
-      })
+      });
     }
 
-    const defaultFields = cfg.defaults || cfg.defaultFields;
+    const defaultFields: { [key: string]: any } | undefined = cfg.defaults || cfg.defaultFields;
     if (_.isPlainObject(defaultFields)) {
-      rc = _.assignWith(rc, defaultFields, function(objVal, srcVal) {
+      rc = _.assignWith(rc, defaultFields, (objVal: any, srcVal: any) => {
         if (_.isFunction(srcVal)) {
           return srcVal();
         }
@@ -212,14 +225,9 @@ exports.createUpdate = function (table, primaryKeyField, _cfg) {
       });
     }
 
-    let stmt = 'UPDATE ?? SET ? WHERE ?? = ? LIMIT 1';
-    let params = [table, rc, primaryKeyField, id];
-    await db.query(stmt, params)
-
-    // update failed ???
-    // if (result.affectedRows === 0) {
-    //   return null;
-    // }
+    const stmt: string = 'UPDATE ?? SET ? WHERE ?? = ? LIMIT 1';
+    const params: Array<any> = [table, rc, primaryKeyField, id];
+    await db.query(stmt, params);
 
     rc[primaryKeyField] = id;
     return rc;
