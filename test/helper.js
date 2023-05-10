@@ -65,6 +65,12 @@ describe('Test query helper', function() {
       assert.ok(Array.isArray(rs));
       assert.deepStrictEqual(rs.length, 2);
     });
+    it('should select no record with where empty array', async function() {
+      const select = helper.createSelect(`test_data_2`, `id`);
+      const rs = await select({where: {stub:[]}});
+      assert.ok(Array.isArray(rs));
+      assert.deepStrictEqual(rs.length, 0);
+    });
   });
 
   describe('Test `createInsert` query function', function() {

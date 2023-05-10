@@ -78,11 +78,13 @@ export const createSelect = (table: string, idField: string) => {
     // support where object
     if (opts.where && _.isPlainObject(opts.where)) {
       const whereArr: Array<string> = [];
+      let hasEmptyArray: boolean = false;
       _.each(opts.where, (val, key) => {
         if (Array.isArray(val)) {
           whereArr.push(`?? IN (?)`);
           if (val.length === 0) {
-            val.push(0);
+            hasEmptyArray = true;
+            return false;
           }
         } else {
           whereArr.push('?? = ?');
@@ -90,6 +92,10 @@ export const createSelect = (table: string, idField: string) => {
         params.push(key);
         params.push(val);
       });
+
+      if (hasEmptyArray) {
+        return [];
+      }
       stmt += ' WHERE ' + whereArr.join(' AND ');
     }
 
