@@ -30083,11 +30083,13 @@ const createSelect = (table, idField) => {
             // support where object
             if (opts.where && lodash_1.default.isPlainObject(opts.where)) {
                 const whereArr = [];
+                let hasEmptyArray = false;
                 lodash_1.default.each(opts.where, (val, key) => {
                     if (Array.isArray(val)) {
                         whereArr.push(`?? IN (?)`);
                         if (val.length === 0) {
-                            val.push(0);
+                            hasEmptyArray = true;
+                            return false;
                         }
                     }
                     else {
@@ -30096,6 +30098,9 @@ const createSelect = (table, idField) => {
                     params.push(key);
                     params.push(val);
                 });
+                if (hasEmptyArray) {
+                    return [];
+                }
                 stmt += ' WHERE ' + whereArr.join(' AND ');
             }
             if (opts.order) {
