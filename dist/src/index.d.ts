@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import * as mysql from 'mysql';
+import * as mysql from 'mysql2';
 import DBConnection from '../lib/db-connection';
 import * as helper from '../lib/helper';
 import { Logger } from './interface';
@@ -8,7 +8,7 @@ export declare const setLogger: (mLogger: Logger) => void;
 export declare const create: (connName: string, settings: mysql.ConnectionConfig) => DBConnection | null;
 export declare const destroy: (connName?: string) => void;
 export declare const getInstanceList: () => Object;
-export declare const getConnection: (opts: string | mysql.ConnectionConfig) => {
+export declare const getConnection: (opts: any) => {
     query: Function;
     end: Function;
 };
@@ -18,7 +18,7 @@ export declare const query: (stmt: string, params?: Array<any>) => Promise<any>;
 * @param  {string} filepath full path of source file
 * @return {[type]}          [description]
 */
-export declare const loadFile: (settings: string | mysql.ConnectionConfig, filepath: string) => Promise<boolean>;
+export declare const loadFile: (settings: any, filepath: string) => Promise<boolean>;
 export declare const printQuery: (_stmt: string, _params: Array<any>) => string | null;
 export declare const setVerbose: (v: boolean) => void;
 export { helper };
