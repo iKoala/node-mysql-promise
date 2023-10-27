@@ -129,7 +129,7 @@ export const loadFile = async (
 
   const readFilePromise: Function = util.promisify(fs.readFile);
 
-  const stmts: any = await readFilePromise(filepath, 'utf8');
+  const stmts: string = await readFilePromise(filepath, 'utf8');
 
   // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
   // console.log(stmts);
