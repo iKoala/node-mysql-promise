@@ -1,7 +1,7 @@
 import util from 'util';
 import mysql, {
   ConnectionConfig, Pool, QueryOptions
-} from 'mysql';
+} from 'mysql2';
 import { Logger } from '../src/interface';
 
 class DBConnection {

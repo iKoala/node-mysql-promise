@@ -1,7 +1,7 @@
 import fs from 'fs';
 import util from 'util';
 import 'dotenv/config';
-import * as mysql from 'mysql';
+import * as mysql from 'mysql2';
 import DBConnection from '../lib/db-connection';
 import * as helper from '../lib/helper';
 import { Logger } from './interface';
@@ -129,7 +129,7 @@ export const loadFile = async (
 
   const readFilePromise: Function = util.promisify(fs.readFile);
 
-  const stmts: string = await readFilePromise(filepath, 'utf8');
+  const stmts: any = await readFilePromise(filepath, 'utf8');
 
   // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
   // console.log(stmts);
