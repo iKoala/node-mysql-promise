@@ -25,6 +25,6 @@ before(() => {
 });
 
 after(async () => {
-  await db.query('DROP TABLE IF EXISTS `test_data_2`')
+  await db.query('DROP TABLE IF EXISTS `test_data_2`');
   db.destroy();
 });

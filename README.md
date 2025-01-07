@@ -63,4 +63,4 @@ export DB_VERBOSE=1 # Optional, enable query log
 > npm run test
 
 # Dependencies:
-[mysql - Node.js MySQL driver](https://www.npmjs.com/package/mysql)
+[MySQL2 - Node.js MySQL driver](https://www.npmjs.com/package/mysql2)
