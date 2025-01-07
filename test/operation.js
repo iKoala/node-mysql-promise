@@ -26,7 +26,7 @@ describe('Test database operation ...', function() {
 
     it(`should delete test_data table`, async function() {
       let rs = await db.query('DROP TABLE `test`.`test_data`')
-      assert.ok(rs.warningCount === 0);
+      assert.ok(rs.warningStatus === 0);
     });
   });
 

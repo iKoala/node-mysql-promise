@@ -1,7 +1,7 @@
 import fs from 'fs';
 import util from 'util';
 import 'dotenv/config';
-import * as mysql from 'mysql';
+import * as mysql from 'mysql2';
 import DBConnection from '../lib/db-connection';
 import * as helper from '../lib/helper';
 import { Logger } from './interface';
@@ -91,7 +91,7 @@ export const getInstanceList = (): Object => {
 };
 
 export const getConnection = (
-  opts: string | mysql.ConnectionConfig
+  opts: any
 ): { query: Function, end: Function } => {
   const connection = mysql.createConnection(opts);
   const query: Function = util.promisify(connection.query.bind(connection));
@@ -117,7 +117,7 @@ export const query = async (stmt: string, params: Array<any> = []): Promise<any>
 * @return {[type]}          [description]
 */
 export const loadFile = async (
-  settings: string | mysql.ConnectionConfig,
+  settings: any,
   filepath: string
 ): Promise<boolean> => {
   logger.log(`<${typeof settings === 'string' ? settings : settings.host}> :: #loadFile :: ${filepath}`);
@@ -129,7 +129,7 @@ export const loadFile = async (
 
   const readFilePromise: Function = util.promisify(fs.readFile);
 
-  const stmts: string = await readFilePromise(filepath, 'utf8');
+  const stmts: mysql.QueryOptions = await readFilePromise(filepath, 'utf8');
 
   // stmts = stmts.replace(/(?:\r\n|\r|\n)/g, '');
   // console.log(stmts);

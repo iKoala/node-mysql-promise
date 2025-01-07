@@ -1,4 +1,4 @@
-import { ConnectionConfig, Pool, QueryOptions } from 'mysql';
+import { ConnectionConfig, Pool, QueryOptions } from 'mysql2';
 import { Logger } from '../src/interface';
 declare class DBConnection {
     name: string;

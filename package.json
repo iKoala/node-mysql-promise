@@ -1,6 +1,6 @@
 {
   "name": "@ikoala/node-mysql-promise",
-  "version": "1.4.12",
+  "version": "2.0.1",
   "description": "Node.js MySQL library promise wrapper",
   "main": "./dist/main.js",
   "types": "./dist/src/index.d.ts",
@@ -27,11 +27,11 @@
   "dependencies": {
     "dotenv": "^16.0.1",
     "lodash": "^4.17.21",
-    "mysql": "^2.18.1"
+    "mysql2": "^3.6.2"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.182",
-    "@types/mysql": "^2.15.21",
+    "@types/node": "^20.8.9",
     "@typescript-eslint/eslint-plugin": "^5.29.0",
     "@typescript-eslint/parser": "^5.29.0",
     "eslint": "^8.16.0",
